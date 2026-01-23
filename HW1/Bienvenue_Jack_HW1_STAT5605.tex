@@ -1,0 +1,463 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  12pt,
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage[most]{tcolorbox}
+\newtcolorbox{bluebox}{
+  colback=blue!5!white,    % Light blue background
+  colframe=blue!80!black,  % Darker blue border
+  boxrule=0.8pt,
+  arc=4pt,
+  left=6pt,
+  right=6pt,
+  top=6pt,
+  bottom=6pt
+}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{titling}
+\setlength{\droptitle}{1em}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={STAT 5605 Homework 1},
+  pdfauthor={Jack Bienvenue},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{STAT 5605 Homework 1}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{February 5, 2026}
+\author{Jack Bienvenue}
+\date{}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{Problem 1}\label{problem-1}
+
+When asked to state the simple linear regression model, a student wrote as follows: \(E[Y_i]=\beta_0+\beta_1 X_i + \epsilon_i\). Do you agree?
+
+\begin{bluebox}
+
+I do \textbf{not} agree with the student's statement of the simple linear regression model. While it is very close to being correct, there is a conceptual mistake. In the correct simple linear regression (SLR) model, $Y_i = \beta_0 + \beta_1X_i + \epsilon_i, \quad i=1,  \dots,n$, we have a few components: \newline
+
+\begin{enumerate}
+ \item The value of the outcome variable for a specific observation, $Y_i$,
+ \item The SLR model intercept, $\beta_0$,
+ \item The SLR model slope, $\beta_1$,
+ \item The value of the input variable for a specific observation, $X_i$,
+ \item and the random error associated with the observation's outcome variable value, $\epsilon_i$.
+\end{enumerate}
+
+The student incorrectly added an expectation function around $Y_i$. This is incorrect as the \textit{expectation} of random variable $Y_i$ does not include the random error associated with the realization. The expectation of $Y_i$ given $X_i$ \textbf{under our SLR model} is actually $E[Y_i | X_i] = \beta_0 + \beta_1X_i$.
+
+\end{bluebox}
+
+\section{Problem 2}\label{problem-2}
+
+In a simulation exercise, regression model on page 19 of note 1 applies with \(\beta_0=100\), \(\beta_1=20\), and \(\sigma^2=25\). An observation on \(Y\) will be made for \(X=5\).
+
+\subsection{(a)}\label{a}
+
+Can you state the exact probability that \(Y\) will fall between 195 and 205? Explain.
+
+\begin{bluebox}
+Let's begin by building our SLR model using the coefficients given by the problem description: \newline
+
+$$ 
+Y = 100 + (20\times5) + \epsilon_i, \text{with assumptions:}
+$$
+\begin{enumerate}
+  \item Expectation of errors is 0, i.e. $E(\epsilon_i) = 0$,
+  \item Homoscedasticity, i.e. $Var(\epsilon_i) = \sigma^2$,
+  \item Errors are uncorrelated between observations.
+\end{enumerate}
+
+In this case, we \emph{cannot} state the exact probability that $Y$ will fall between $195$ and $205$ because \emph{although we have all relevant information for the important parameters} ($\beta_0, \beta_1, Var(\epsilon_i)$) \emph{in our model}, we do not have information about the specific distributional shape of the errors ($\epsilon_i$), disallowing us to make statements about the exact probability of an observation's $Y$ value to fall in a given interval. 
+
+\end{bluebox}
+
+\subsection{(b)}\label{b}
+
+If the normal error is assumed, can you now state the exact probability that \(Y\) will fall between 195 and 205? If so, state it.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Calculate the probabilities}
+\DocumentationTok{\#\# P(Y\textless{}=195)}
+\NormalTok{prob\_195 }\OtherTok{\textless{}{-}} \FunctionTok{pnorm}\NormalTok{(}\DecValTok{195}\NormalTok{, }\AttributeTok{mean =} \DecValTok{200}\NormalTok{, }\AttributeTok{sd =} \DecValTok{5}\NormalTok{)}
+\DocumentationTok{\#\# P(Y\textless{}=205)}
+\NormalTok{prob\_205 }\OtherTok{\textless{}{-}} \FunctionTok{pnorm}\NormalTok{(}\DecValTok{205}\NormalTok{, }\AttributeTok{mean =} \DecValTok{200}\NormalTok{, }\AttributeTok{sd =} \DecValTok{5}\NormalTok{)}
+\DocumentationTok{\#\# P(Y\textless{}=205) {-} P(Y\textless{}=195) = P(195 \textless{}= Y \textless{}= 205)}
+\NormalTok{prob\_bw\_195\_205 }\OtherTok{\textless{}{-}}\NormalTok{ prob\_205 }\SpecialCharTok{{-}}\NormalTok{ prob\_195}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Probability of Y being in [195, 205]:"}\NormalTok{, prob\_bw\_195\_205)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Probability of Y being in [195, 205]: 0.6826895
+\end{verbatim}
+
+\begin{bluebox}
+
+If we assume that errors are normally distributed, $\epsilon_i \sim N(0, \sigma^2)$, we are now able to calculate probabilities for $Y$ falling in certain intervals. These intervals are ``exact" under a normal error ($N(0, \sigma^2)$) assumption, and will be exact if this assumption accurately describes the error distribution (otherwise, the calculated probability will be an approximation).
+
+To calculate the probability that $Y$ falls between $195$ and $205$ given that $\beta_0 = 100$, $\beta_1 = 20$, and $X = 5$, we should first use this information to obtain $E[Y_{X=5}]$, the ``center" for our errors: $Y = 100 + (20\times5) = 200$. From here, we can use R's \texttt{pnorm()} function, setting the mean to $200$ (our mean-zero errors are centered at $E[Y_{X=5}]$) and standard deviation to $5$ (our \emph{variance} for the errors is $25$, therefore the relevant standard deviation is $\sqrt{25}=5$). We can calculate the lower-tail-to-quantile probabilities and subtract the lower probability (corresponding to $195$) from the higher probability (corresponding to $205$) to find the probability of $Y$ falling in the 195-205 range. Based on the empirical rule, we expect this probability to be around $68\%$ because the bounds are one standard deviation removed from the mean. We do find this result to be true in our calculation, as the computed probability is $0.6826895$. This probability is exact if the normal assumption on the errors we made is true and if all parameter values were the true population parameters. Otherwise, this probability is approximate. 
+
+\end{bluebox}
+
+\section{Problem 3}\label{problem-3}
+
+The regression function relating production output by an employee after taking a training program (\(Y\)) to the production output before the training program (\(X\)) is \(E\{Y\}= 20+0.95X\), where \(X\) ranges from 40 to 100. An observer concludes that the training program does not raise production output on the average because \(\beta_1\) is not greater than 1.0. Comment.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create plot}
+\NormalTok{x }\OtherTok{\textless{}{-}} \FunctionTok{seq}\NormalTok{(}\DecValTok{40}\NormalTok{, }\DecValTok{100}\NormalTok{, }\AttributeTok{by =} \DecValTok{1}\NormalTok{)}
+\NormalTok{y }\OtherTok{\textless{}{-}} \DecValTok{20} \SpecialCharTok{+} \FloatTok{0.95} \SpecialCharTok{*}\NormalTok{ x}
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x, }\AttributeTok{y =}\NormalTok{ y)}
+\FunctionTok{ggplot}\NormalTok{(df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x, }\AttributeTok{y =}\NormalTok{ y)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{linewidth =} \FloatTok{1.2}\NormalTok{, }\AttributeTok{color =} \StringTok{"cornflowerblue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{( }\AttributeTok{title =} \StringTok{"SLR: Employee Productivity Pre{-} and Post{-}Training"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"X {-} Pre{-}Training Productivity"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"E[Y] {-} Post{-}Training Expected Productivity"}\NormalTok{ ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{13}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{( }\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{axis.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Bienvenue_Jack_HW1_STAT5605_files/figure-latex/unnamed-chunk-2-1.pdf}}
+
+\begin{bluebox}
+
+While the observer may be wary of the efficacy of the training program due to the fact that $\beta_1 < 1$, we can assure them that there is a positive effect of the training program on employee productivity on average in this linear model. When we plot our regression line, we can easily observe that employees across all pre-training productivity levels experienced an increase in productivity after undergoing training, on average using this model. Even in such a simple linear model, the regression line is being defined by two different parameters, $\beta_0$ and $\beta_1$, and therefore the effect is being ``split" between these contributors. The \emph{combination} of $\beta_0 = 20$ and $\beta_1 = 0.95$ actually yields a regression that would suggest that, on average, there is a positive productivity effect associated with undergoing training. A coefficient $\beta_1 < 1 \nRightarrow E[Y|X] < X$, because algebraically, $20 + 0.95X > X$ for $X \in [40,100]$.
+
+\end{bluebox}
+
+\section{Problem 4}\label{problem-4}
+
+Evaluate the following statement: ``For the least squares method to be fully valid, it is required that the distribution of \(Y\) be normal.''
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\section{Problem 5}\label{problem-5}
+
+According to page 36 of note 1, \(\sum^n_{i=1} e_i = 0\) when a SLR model is fitted to a set of \(n\) cases by the method of least squares. Is it also true that \(\sum^n_{i=1} \epsilon_i =0\)? Comment.
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\section{Problem 6}\label{problem-6}
+
+The least squares regression line for a given set of data with a sample size of \(n=20\) is \(\hat{Y}=-42 + 0.9 X\) (i.e., \(b_0=-42\) and \(b_1=0.9\)). The MSE of the fitted simple linear regression (SLR) model is 0.14, and the standard error of \(b_1\) (i.e., \(se(b_1)\)) is 0.016. Suppose \(\bar{X}=200\). Answer the following questions and additionally provide references for the pertinent equation numbers from the notes and/or textbook.
+
+\subsection{(a)}\label{a-1}
+
+What is the fitted value of \(Y\) at \(X=220\).
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\subsection{(b)}\label{b-1}
+
+Compute the standard error of \(b_0\).
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\subsection{(c)}\label{c}
+
+Find \(\bar{Y}\).
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\subsection{(d)}\label{d}
+
+What are \(S_{XX}\) and \(S_{XY}\) for this data set?
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\subsection{(e)}\label{e}
+
+Compute \(\mbox{corr}(b_0,b_1)\).
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\section{Problem 7}\label{problem-7}
+
+Suppose you are given \(n\) pairs of observations \((X_1,Y_1), \dots, (X_n,Y_n)\).
+
+\subsection{(a)}\label{a-2}
+
+Describe an empirical Q-Q plot and a scatter plot for this data set?
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\subsection{(b)}\label{b-2}
+
+Can an empirical Q-Q plot be identical to the respective scatter plot for certain data set? If so, when would this happen?
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\subsection{(c)}\label{c-1}
+
+To gain better understanding betweenthese two types of plots, draw the empirical Q-Q plot and the scatter plot for the Ratings of TV Shows Data in Example 2 from the HuskyCT class website. Provide a brief discussion.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ratings }\OtherTok{=} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"ratings.csv"}\NormalTok{)}
+\FunctionTok{head}\NormalTok{(ratings)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     X   Y
+## 1 2.5 3.8
+## 2 2.7 4.1
+## 3 2.9 5.8
+## 4 3.1 4.8
+## 5 3.3 5.7
+## 6 3.5 4.4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{attach}\NormalTok{(ratings)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{plot}\NormalTok{(X,Y, }\AttributeTok{main=}\StringTok{"Scatterplot of News Ratings vs Lead Ratings"}\NormalTok{,}
+     \AttributeTok{ylab=}\StringTok{"News Ratings"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"Lead Ratings"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Bienvenue_Jack_HW1_STAT5605_files/figure-latex/unnamed-chunk-12-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sx }\OtherTok{\textless{}{-}} \FunctionTok{sort}\NormalTok{(X); sy }\OtherTok{\textless{}{-}} \FunctionTok{sort}\NormalTok{(Y)}
+\NormalTok{lenx }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(sx); leny }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(sy)}
+\FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+} \FunctionTok{geom\_point}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sx, }\AttributeTok{y =}\NormalTok{ sy)) }\SpecialCharTok{+}
+\FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Empirical Quantile Plot of X and Y"}\NormalTok{) }\SpecialCharTok{+}
+\FunctionTok{xlab}\NormalTok{(}\StringTok{"X"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ylab}\NormalTok{(}\StringTok{"Y"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Bienvenue_Jack_HW1_STAT5605_files/figure-latex/unnamed-chunk-12-2.pdf}}
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\section{Problem 8}\label{problem-8}
+
+Suppose you are given \(n\) pairs of observations \((X_1,Y_1), \dots, (X_n,Y_n)\). Let \(e_i\) denote the residual for the \(i^{th}\) observation calculated based on the Least Squares method. Using algebra of least squares, argue that weighted sum of residuals, with \(i^{th}\) residual weighted by the corresponding \(Y_i\), is SSE.
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\section{Problem 9}\label{problem-9}
+
+A student was investigating from a large sample whether variables \(Y_1\) and \(Y_2\) follow a bivariate normal distribution. The student obtained the residuals when regressing \(Y_1\) on \(Y_2\), and also obtained the residuals when regressing \(Y_2\) on \(Y_1\), and then prepared a normal probability plot for each set of residuals. Do these two normal probability plots provide sufficient information for determining whether the two variables follow a bivariate normal distribution? Explain.
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\section{Problem 10}\label{problem-10}
+
+The data below show, for a consumer finance company operating in seven cities, the number of competing loan companies operating in a city (\(X_i\)) and the number per thousand of delinquent loans made in that city (\(Y_i\)):
+
+\begin{center}
+\begin{tabular}{cccccccc}
+$X_i$ & 4 & 1 & 2 & 3 & 3 & 4 & 2\\
+$Y_i$ & 18 & 4 & 9 & 14 & 16 & 20 & 8\\
+\end{tabular}
+
+\end{center}
+
+For a simple linear regression analysis, let \(X\) denote the design matrix and \(Y\) denote the column vector of responses for the dataset in reference above.
+Compute \(X'X,\) \(X'Y,\) \((X'X)^{-1},\) and use these results to find the estimated vector \(\textbf{b}=\begin{pmatrix}
+        b_0 \\
+        b_1
+\end{pmatrix}\) of the regression coefficients.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{one}\OtherTok{=}\FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{7}\NormalTok{)}
+\NormalTok{x1}\OtherTok{=}\FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{2}\NormalTok{)}
+\NormalTok{X}\OtherTok{=}\FunctionTok{t}\NormalTok{(}\FunctionTok{rbind}\NormalTok{(one,x1))}
+\NormalTok{X}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      one x1
+## [1,]   1  4
+## [2,]   1  1
+## [3,]   1  2
+## [4,]   1  3
+## [5,]   1  3
+## [6,]   1  4
+## [7,]   1  2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Y}\OtherTok{=}\FunctionTok{c}\NormalTok{(}\DecValTok{18}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{9}\NormalTok{, }\DecValTok{14}\NormalTok{, }\DecValTok{16}\NormalTok{, }\DecValTok{20}\NormalTok{, }\DecValTok{8}\NormalTok{)}
+\NormalTok{Y}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 18  4  9 14 16 20  8
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{XTY}\OtherTok{=}\FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ Y}
+\NormalTok{XTY}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     [,1]
+## one   89
+## x1   280
+\end{verbatim}
+
+\begin{bluebox}
+
+\end{bluebox}
+
+\end{document}

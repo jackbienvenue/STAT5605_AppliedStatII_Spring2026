@@ -1,0 +1,93 @@
+---
+title: "BIST/STAT 5605 Course Project"
+subtitle: "Due date: 11:59pm, Wednesday May 6, 2026"
+output: pdf_document
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{-5em} 
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+\vspace{-1cm}
+
+## General Instructions
+
+* Use this R Markdown template for project report submission.
+* Inserting R codes with necessary comments when you draw plots or carry out Exploratory Data Analysis (EDA) and Statistical Inference. Your outputs must contain the R code (do not use the `echo=FALSE` option) if applicable.
+* Save the compiled PDF file under the file name `LastName-FirstName-Project.pdf` and submit it together with the R Markdown file through HuskyCT by the deadline. 
+
+
+
+This is a team project. Every team should be made of one or two members. By Saturday, March 14, 2026 at 11:59 pm: Identify a team of 2 members and
+inform your instructor by email, copying your partner/s. Just one member of a team should email the instructor. Note that only one member for
+each team is required to submit the project report.
+
+### Project Title
+
+### Team Members:
+
+### Contact addresses, and email addresses
+
+### Abstract/Summary of the project
+
+
+### Section 1: Introduction
+\begin{quote}
+This section should include a
+  literature review, the statement of the problem, a brief discussion
+  why this problem is important, and an outline of the rest of the
+  report.
+\end{quote}
+
+### Section 2: Description of Motivating Data
+\begin{quote}
+This section provides a description of the
+  data, including the source. You should also show various graphical
+  and numerical descriptions of the variables in your data set. The
+  data set must be provided on HuskyCT as a .csv file.
+\end{quote}
+
+### Section 3. Methods (or Models)
+ \begin{quote}
+This section should Clearly write out the model(s)
+  you will use, defining all terms, and listing all assumptions.
+\end{quote}
+
+
+### Section 4. Analysis of the Data
+ \begin{quote}
+This section should provide a detailed analyze of the data. You
+  must pay attention to fitting the best model to your data, keeping
+  in mind all the aspects about MLRs or GLMs we have discussed and the
+  book discusses. Specifically, you must provide model validation, by
+  fitting your model on a ``calibration data portion'' and validating
+  on a ``test data portion'', and prediction based on the ``best''
+  model.
+\end{quote}
+
+### Section 5. Concluding Remarks
+\begin{quote}
+This section should include a 2-3 paragraph summary
+  of the analysis and what you have learned.
+\end{quote}
+
+
+### Section 6. Appendix (optional)
+\begin{quote}
+This section could include computer codes and any other important additional materials.
+\end{quote}
+
+### Acknowledgments (if applicable).
+
+### References (if applicable)
+\begin{quote}
+This section lists references cited in the report in
+  alphabetical order based on the last names of the first author of
+  the articles or books.
+Citations should be formatted as follows:
+ Authors (Year). Title. \textit{Journal}, \textbf{Volume}, page numbers.
+\end{quote}

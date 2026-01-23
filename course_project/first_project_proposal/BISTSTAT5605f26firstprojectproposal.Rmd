@@ -1,0 +1,62 @@
+---
+title: "BIST/STAT 5605 First Project Proposal"
+subtitle: "Due date: 11:59pm, Sunday March 29, 2026"
+output: pdf_document
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{-5em} 
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+\vspace{-1cm}
+
+## General Instructions
+
+* Use this R Markdown template for project report submission.
+* Inserting R codes with necessary comments when you draw plots or carry out Exploratory Data Analysis (EDA) and Statistical Inference. Your outputs must contain the R code (do not use the `echo=FALSE` option) if applicable.
+* Save the compiled PDF file under the file name `LastName-FirstName-FirstProjectProposal.pdf` and submit it together with the R Markdown file through HuskyCT by the deadline. 
+
+
+
+This is a team project. Every team should be made of one or two members. By Saturday, March 14, 2026 at 11:59 pm: Identify a team of 2 members and
+inform your instructor by email, copying your partner/s. Just one member of a team should email the instructor. Note that only one member for
+each team is required to submit the first project proposal.
+
+### Tentative Project Title
+
+### Team Members:
+
+### Contact addresses, and email addresses
+
+###  A Draft of Abstract/Summary of the project
+
+
+### Section 1. Description of the Project
+\begin{quote}
+This section should provide an overall idea about of your project.
+Your project must include certain
+novel ways in which you will employ the statistical models
+and methods covered in this class, or describe innovative extensions
+you wish to show. The proposal should include a brief literature
+survey that indicates how analysis for the same or similar data has
+been done previously, and clearly identifies how your analysis is
+unique.  A project that consists of just repeating previous analyses
+will not be accepted. In your proposal, also describe how you will
+address all elements in Sections 2-4 of the Project Report.
+\end{quote}
+
+### Section 2: A Preliminary Analysis of the Data
+\begin{quote}
+This section provides a description of the
+  data, including the source. You should also show some EDA of your data and demonstrate that your proposed idea is promising and has the potential to develop an innovative project.
+\end{quote}
+
+### Section 3. Set a meeting with the instructor
+ \begin{quote}
+ Please select a 30-minute time slot between March 30-April 12, 2026 to meet the instructor to discuss your project proposal.  The meeting time slots will be post on the HuskyCT calss website.
+\end{quote}
+
