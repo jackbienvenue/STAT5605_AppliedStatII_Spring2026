@@ -1,0 +1,46 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+.RDataTmp
+
+# User-specific files
+.Ruserdata
+
+# RStudio files
+.Rproj.user/
+*.Rproj  # Optional: some users prefer to share .Rproj files
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+*.html.heif # Temporary file from heif graphics package
+
+# Output files that can be regenerated
+*.pdf
+*.html
+*.docx
+*.tex
+*.log
+*.aux
+*.bbl
+*.blg
+*.toc
+*.spl
+*.synctex.gz
+*_cache/
+/cache/
+
+# renv (R environment) folders, if using
+renv/library/
+renv/python/
+renv/staging/
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
+# OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
