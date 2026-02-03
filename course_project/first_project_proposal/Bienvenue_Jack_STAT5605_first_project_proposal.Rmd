@@ -28,6 +28,15 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ### Section 1. Description of the Project
 
 \begin{quote}
+\textbf{Abstract}
+
+
+
+\textbf{Introduction}
+
+Motor vehicle accidents have, for decades, been a leading cause of death among children and young
+
+**
 This section should provide an overall idea about of your project.
 Your project must include certain
 novel ways in which you will employ the statistical models
@@ -38,7 +47,7 @@ been done previously, and clearly identifies how your analysis is
 unique.  A project that consists of just repeating previous analyses
 will not be accepted. In your proposal, also describe how you will
 address all elements in Sections 2-4 of the Project Report.
-
+**
 
 \end{quote}
 
