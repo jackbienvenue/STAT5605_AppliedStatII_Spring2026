@@ -1,0 +1,237 @@
+---
+title: "STAT 5605 Homework 2"
+subtitle: "February 5, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+
+invisible(lapply(c( "ggplot2"), 
+  function(pkg) suppressPackageStartupMessages(library(pkg, 
+                                                character.only = TRUE))))
+```
+
+
+# Problem 1 
+
+The least squares regression line for a given set of data with a sample size of $n=20$ is $\hat{Y}=-42 + 0.9 X$ (i.e., $b_0=-42$ and $b_1=0.9$). The MSE of the fitted simple linear regression (SLR) model is 0.14, the standard error of $b_1$ (i.e., $se(b_1)$) is 0.016, and the upper limit of a 95\% predictive interval at $X_{new}=222$ is 165.2.  Further, we assume that the error term has a normal distribution. Answer the following questions.
+
+## (a) 
+
+What is the standard error of  the fitted value of $Y$ at $X=222$ (i.e., $se(\hat{Y})$)?
+
+
+## (b) 
+
+What are the predicted value of $Y_{new}$ and its standard error at $X_{new}=222$?
+
+## (c) 
+
+How much does use of this SLR model reduce the uncertainty in predicting the response  variable $Y$?
+
+\newpage
+
+# Problem 2
+
+An analysis is performed to study the relationship between a response variable $Y$ and a single explanatory variable $X$. The model guiding the analysis is:
+
+$$
+  Y_i=\beta_0+\beta_1 X_{i}+ \epsilon_i, 
+$$ 
+where the $\epsilon_i$ are independently and identically distributed as $N(0,\sigma^2)$ and $\sigma^2$ is unknown. The data with a sample size of $n=5$ were analyzed using PROC REG in SAS (or function lm in R) and Table 1 below shows the partial output produced by the software.
+  \begin{center}
+    {\bf Table 1: Computer Output}
+    \medskip
+
+    \begin{tabular}{crr} \hline
+      Obs ($i$)  & $x_i$   &          Residual ($e_i$) \\ \hline
+      1  & 0.0   &        0.04 \\
+      2  & 4.1   &        0.11 \\
+      3  & 5.1   &       -0.67 \\
+      4  & 6.1   &        0.75 \\
+      5  & $\ast$  &    $\ast$ \\ \hline
+    \end{tabular}
+  \end{center}
+Fill in the two missing values (denoted by ``$\ast$'') in Table 1.  
+
+
+# Problem 3 
+
+In a small-scale regression study, five observations on $Y$ were obtained corresponding to $X$ = 1, 4, 10, 11, and 14. Assume that $\sigma= 0.6$, $\beta_0 = 5$, and $\beta_1 = 3$.
+  
+## (a)  
+
+What are the expected values of MSR and MSE here?
+  
+## (b)  
+
+For determining whether or not a regression relation exists, would it have been better or worse to have made the five observations at $X$ = 6, 7, 8, 9, and 10? Why? Discuss.
+
+
+# Problem 4
+A random sample of 100 paired observations $(X_i, Y_i)$, $i=1,2,\dots, 100$ was taken. Of the observations, 75 $(X_i,Y_i)$'s are $(2, 2)$ and 25 $(X_i,Y_i)$'s are $(1, 10)$. Suppose that we fit this data set with  a simple linear regression model $Y_i=\beta_0+\beta_1 X_i + \epsilon_i$ under the usual assumptions including Var$(\epsilon_i)=\sigma^2$.
+
+## (a)  
+
+What are the LS estimates $(b_0,b_1)'$ of $(\beta_0,\beta_1)'$? 
+
+## (b)  
+
+What are the standard errors of $b_0$ and $b_1$, respectively? 
+
+## (c)  
+
+What is the coefficient of determination $R^2$? 
+
+## (d)  
+
+What is the hat matrix $H$? 
+  
+## (e)  
+
+What is an estimate of $\sigma^2$? 
+
+
+ 
+\newpage
+# Problem 5
+
+Work standards specify time, cost, and efficiency norms for the performance of work tasks. They are typically used to monitor job performance. In the distribution center of McCormick \& Company, Inc., data were collected to develop work standards for the time to assemble or fill customer orders. The table below contains data for a random sample of 9 orders.
+
+\begin{center}
+\begin{tabular}{c|ccccccccc}
+  \hline
+ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
+  \hline
+$X$ (number of items in the order) & 36 & 34 & 255 & 103 & 4 & 555 & 6 & 60 & 96 \\
+  $Y$ (assemble time, minutes) & 27 & 15 & 71 & 35 & 8 & 60 & 3 & 10 & 10 \\
+   \hline
+\end{tabular}
+\end{center}
+```{r}
+x <- c(36, 34, 255, 103, 4, 555, 6, 60, 96)
+y <- c(27, 15, 71, 35, 8, 60, 3, 10, 10)
+jobpf =  data.frame(x,y)
+mod <- lm(formula = y ~ x)
+summary(mod)
+plot(x, y)
+```
+Using the above data of size $n=9$, answer the following questions.
+
+## (a)  
+
+Obtain the estimated regression function. Plot the estimated regression function and the data. Does a linear regression function appear to give a good fit here?
+
+## (b)  
+
+Obtain a point estimate of the expected assemble time for an order with $X = 70$ items.
+
+
+## (c) 
+
+Estimate $\beta_1$ with a 95 percent confidence interval. Interpret your interval estimate.
+
+
+## (d)  
+
+Conduct a $t$ test to decide whether or not there is a linear association between number of items in an order ($X$) and the assemble time ($Y$). Use a level of significance of .05. State the alternatives, decision rule, and conclusion. What is the p-value of the test?
+
+## (e)  
+
+Estimate the mean assemble time for orders with the following numbers of items: $X = 70$ and $X=100$. Use separate 99 percent confidence intervals. Interpret your results.
+
+## (f)  
+
+The next order has 30 items. Obtain a 99 percent prediction interval for the assemble time for this order. Interpret your prediction interval.
+
+## (g)  
+
+Set up the ANOVA table. Which elements are additive?
+
+## (h) 
+
+Conduct an $F$ test to decide whether or not there is a linear association between the assemble time and the number of items; control the $\alpha$ risk at .05. State the alternatives, decision rule, and conclusion.
+
+## (i)  
+
+Obtain the $t^\star$ statistic for the test in part (h) and demonstrate numerically its equivalence to the $F^\star$ statistic obtained in part (h).
+
+## (j)  
+
+Calculate $R^2$ and $r$. What proportion of the variation in $Y$ is accounted for by introducing $X$ into the regression model?
+
+## (k) 
+
+It took 50 minutes to assemble an order. Obtain a 95 percent confidence interval for the number of items in this order using both the delta and exact methods. Interpret your confidence interval.
+
+## (l) 
+
+In part (k), is criterion in page 52 of Note 3 satisfied regarding the appropriateness of the approximate confidence interval?
+
+\newpage
+
+# Problem 6 
+
+In fitting a simple linear regression on a data set with mean response $\bar{Y}=0.9112$ and covariate $X$ ranging from -2.224 to  2.441, the following partial R outputs are obtained.
+
+\begin{verbatim}
+Call:
+lm(formula = y ~ x)
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)
+(Intercept)   0.9026     0.1926
+x             0.3776     0.2192
+
+Analysis of Variance Table
+Response: y
+          Df Sum Sq Mean Sq F value  Pr(>F)
+x          1   11.0
+Residuals 98
+
+Residual standard error: 1.925 on 98 degrees of freedom
+\end{verbatim}
+
+## (a) 
+
+Find the sample size $n$, SSE, $\hat\sigma^2$, and R-square $R^2$.
+  
+  
+## (b)  
+
+Find the p-value for testing $H_0:\beta_0=0$ versus $H_1:\beta_0\neq0$, and the p-value for testing $H_0:\beta_1=0$ versus $H_1:\beta_1 < 0$.
+
+## (c)  
+
+Find the sample coefficient of variation for the covariate $X$, CV$_X$ (see page 45 of Note 1 for the definition).
+  
+
+  For the same data set, we have the following
+\begin{verbatim}
+> CI<-predict(fit, se.fit=TRUE, interval = c("confidence"))
+> head(cbind(y,CI$fit))
+            y       fit        lwr      upr
+1  2.69001380 1.3794827  0.7183901 2.040575
+2 -0.58617658 0.7794220  0.3683444 1.190500
+3 -0.09899989 1.4047227  0.7196928 2.089753
+\end{verbatim}
+ 
+## (d)  
+
+For $X$ with the same value as in the first observation (the first line of the output with $Y=2.69001380$), find the SE of estimating the mean response and the SE of $Y_{new} -\hat{Y}_{new}$.
+
+## (e) 
+
+For a single observation with $X=1$, find the 95\% prediction interval for the response.
+
+           
