@@ -27,18 +27,65 @@ invisible(lapply(c( "ggplot2"),
 
 The least squares regression line for a given set of data with a sample size of $n=20$ is $\hat{Y}=-42 + 0.9 X$ (i.e., $b_0=-42$ and $b_1=0.9$). The MSE of the fitted simple linear regression (SLR) model is 0.14, the standard error of $b_1$ (i.e., $se(b_1)$) is 0.016, and the upper limit of a 95\% predictive interval at $X_{new}=222$ is 165.2.  Further, we assume that the error term has a normal distribution. Answer the following questions.
 
+```{r}
+# Calculate critical value for t:
+t_crit_1a <- qt(0.975, df=18)
+cat("t critical value:", t_crit_1a)
+```
+
 ## (a) 
 
-What is the standard error of  the fitted value of $Y$ at $X=222$ (i.e., $se(\hat{Y})$)?
+What is the standard error of the fitted value of $Y$ at $X=222$ (i.e., $se(\hat{Y})$)?
 
+\begin{bluebox}
+We can calculate $\text{se}(\hat{Y})$ by using the formula $\text{se}(\hat{Y}_{X=222}) = \sqrt{\text{MSE}\left(\frac{1}{n}+\frac{(\bar{X}-222)^2}{S_{XX}}\right)}$. So, we must find values for $\bar{X}$, $S_{XX}$. 
+
+The value $S_{XX}$ is not immediately available from the given information, but it can be retrieved from what we know about $0.016 = \text{se}(b_1) = \sqrt{\frac{\text{MSE}}{S_{XX}}}$. Given $\text{MSE} = 0.14$, we can rearrange the equation to become $S_{XX} = \frac{\text{MSE}}{(\text{se}(b_1))^2} = \frac{0.14}{0.016^2} = 546.875$.
+
+To find $\bar{X}$ to calculate the standard error we are seeking, we will have to work backwards from the upper value of the $95\%$ predictive interval we are given. The upper end of this predictive interval is defined by the formula $\text{Upper Bound} = \hat{Y}(222)+t_{0.975, n-2}\sqrt{\text{MSE}\left(1+\frac{1}{n}+\frac{(222-\bar{X})^2}{S_{XX}} \right)}$. To calculate the value of $\bar{X}$, we can compute $\hat{Y}$ given $X=222$ and input our known values into the equation and rearrange:
+
+$$
+\hat{Y}(222) = -42+0.9(220) = 157.8
+$$
+
+Now, we can approach $\bar{X}$:
+
+$$
+165.2 = 157.8 + 2.101\sqrt{0.14\left(1+\frac{1}{20} + \frac{(222-\bar{X})^2}{546.875} \right)} = 
+$$
+$$
+\frac{\left(\frac{165.2-157.9}{2.101}\right)^2}{0.14} - 1.05 = \frac{(222-\bar{X})^2}{546.875} = 
+$$
+
+$$
+= \bar{X} = 222 - \sqrt{ (546.875)\left( \frac{\left(\frac{165.2-157.8}{2.101}\right)^2}{0.14} - 1.05 \right) } = -44.655
+$$
+
+Now, the standard error of $\hat{Y}$ at $X=222$ can finally be calculated:
+
+$$
+\text{se}(\hat{Y}_{X=222}) = \sqrt{\text{0.14}\left(\frac{1}{20}+\frac{(-44.655-222)^2}{546.875}\right)} = 4.2707
+$$
+
+FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+\end{bluebox}
 
 ## (b) 
 
 What are the predicted value of $Y_{new}$ and its standard error at $X_{new}=222$?
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (c) 
 
-How much does use of this SLR model reduce the uncertainty in predicting the response  variable $Y$?
+How much does use of this SLR model reduce the uncertainty in predicting the response variable $Y$?
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 \newpage
 
@@ -65,6 +112,41 @@ where the $\epsilon_i$ are independently and identically distributed as $N(0,\si
   \end{center}
 Fill in the two missing values (denoted by ``$\ast$'') in Table 1.  
 
+\begin{bluebox}
+As a consequence of the least squares method, the sum of residuals must be zero, here $\sum^{5}_{i=1} e_i = 0$.
+
+So, to get $e_5$, we can find a value that would make the sum of residuals zero:
+
+$$
+0 = 0.04 + 0.11-0.67+0.75+e_5,
+$$
+So, 
+
+$$
+e_5 = -0.23
+$$
+
+Now, with only $x_5$ missing but its residual known, we can find its value as it can no longer freely vary (given the values of $x_1,\dots, x_4$ and $e_1,\dots,e_5$ is dictated). This is because we have a key relationship of residuals' orthogonality to the regressor, here we can express this relationship as $\sum^5_{i=1} x_ie_i = 0$
+
+Solving for $x_5$,
+
+$$
+0 = 0.04(0) + 0.11(4.1) - 0.67(5.1) + 0.75 (6.1) - 0.23(x_5),
+$$
+gives
+
+$$
+x_5 = \frac{0 - 0.451 + 3.417 -4.575 }{-0.23} \approx 7.
+$$
+
+So, the missing entry is:
+
+    \begin{tabular}{crr} \hline
+      Obs ($i$)  & $x_i$   &          Residual ($e_i$) \\ \hline
+      5  & 7  &    -0.23 \\ \hline
+    \end{tabular}
+
+\end{bluebox}
 
 # Problem 3 
 
@@ -73,11 +155,30 @@ In a small-scale regression study, five observations on $Y$ were obtained corres
 ## (a)  
 
 What are the expected values of MSR and MSE here?
+
+\begin{bluebox}
+We can apply the equations from Slide 23 of the third course notes for this question: $\mathbb{E}[\text{MSE}] = \sigma^2$ and $\mathbb{E}[\text{MSR}] = \sigma^2 + \beta_1^2 \sum^n_{i=1}(X_i-\bar{X})^2$. Beforehand, we will want to know the value of $\bar{X}$, which can be easily calculated as $\bar{X} = \frac{1}{5}(1+4+10+11+14) = 8.$ Now, we have all known values needed for our calculations:
+
+$$
+\mathbb{E}[\text{MSE}] = \sigma^2 = 0.6^2 = 0.36, 
+$$
+and 
+
+$$
+\mathbb{E}[\text{MSR}] = 0.36 + 9\left( (1-8)^2 + (4-8)^2 + (10-8)^2 + (11-8)^2 + (14-8)^2 \right) = 1026.36.
+$$
+\end{bluebox}
   
 ## (b)  
 
 For determining whether or not a regression relation exists, would it have been better or worse to have made the five observations at $X$ = 6, 7, 8, 9, and 10? Why? Discuss.
 
+\begin{bluebox}
+The $F$ test statistic is $F^\star = \frac{\text{MSR}}{\text{MSE}}$. For testing whether there is a nonzero regression slope, the null and alternative hypotheses are $H_0: \beta_1 = 0$ and $H_1: \beta_1 \neq 0$. Larger values of $F^\star$ tend to support the alternative hypothesis in favor of finding a regression relation. Spreading the values of $X$ is better as it provides additional opportunity for the test statistic to surpass a critical value given that a regression relationship exists. When the $X$ values are closer together, even if a regression relationship exists, it may be missed because of the deflation of the $\text{MSR}$. Given the power advantage, the original set would be more effective than this proposed set of $X$'s.
+\end{bluebox}
+
+
+\newpage
 
 # Problem 4
 A random sample of 100 paired observations $(X_i, Y_i)$, $i=1,2,\dots, 100$ was taken. Of the observations, 75 $(X_i,Y_i)$'s are $(2, 2)$ and 25 $(X_i,Y_i)$'s are $(1, 10)$. Suppose that we fit this data set with  a simple linear regression model $Y_i=\beta_0+\beta_1 X_i + \epsilon_i$ under the usual assumptions including Var$(\epsilon_i)=\sigma^2$.
@@ -86,21 +187,41 @@ A random sample of 100 paired observations $(X_i, Y_i)$, $i=1,2,\dots, 100$ was 
 
 What are the LS estimates $(b_0,b_1)'$ of $(\beta_0,\beta_1)'$? 
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (b)  
 
 What are the standard errors of $b_0$ and $b_1$, respectively? 
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 ## (c)  
 
 What is the coefficient of determination $R^2$? 
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (d)  
 
 What is the hat matrix $H$? 
+
+\begin{bluebox}
+a
+\end{bluebox}
   
 ## (e)  
 
 What is an estimate of $\sigma^2$? 
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 
  
@@ -133,51 +254,127 @@ Using the above data of size $n=9$, answer the following questions.
 
 Obtain the estimated regression function. Plot the estimated regression function and the data. Does a linear regression function appear to give a good fit here?
 
+```{r}
+ggplot(jobpf, aes(x = x, y = y)) +
+  geom_point(
+    size = 3,
+    color = "wheat3",
+    alpha = 0.8
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "lightslateblue",
+    linewidth = 1
+  ) +
+  labs(
+    title = "Scatterplot with Linear Regression Fit",
+    x = "x",
+    y = "y"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+\begin{bluebox}
+
+The estimated regression function is $\hat{Y} = 12.594 + 0.1094X_1$. 
+
+Based upon the plot, the linear regression function appears to fit the data reasonably. Our regression outputs gave us reason to believe that a linear association exists ($\beta_1 \neq 0$) with the regression function providing meaningful explanatory power for the outcome variable ($R^2 \approx 0.64$). The sample size here is very small, and the perception of a linear relationship provided by the scatter plot may be subject to change under an increased sample size. While we can doubt whether this data provides enough information about the association between $X$ and $Y$, at present we do not have any reason to dispute a linear fit. 
+
+\end{bluebox}
+
 ## (b)  
 
 Obtain a point estimate of the expected assemble time for an order with $X = 70$ items.
 
+\begin{bluebox}
+Now, let's put our regression model to work to find out the fitted value for $X=70$:
+
+$$
+(\hat{Y}|X=70) = 12.594 + 0.1094(70) = 20.252
+$$
+
+\end{bluebox}
 
 ## (c) 
 
 Estimate $\beta_1$ with a 95 percent confidence interval. Interpret your interval estimate.
 
+\begin{bluebox}
+a
+\end{bluebox}
 
 ## (d)  
 
 Conduct a $t$ test to decide whether or not there is a linear association between number of items in an order ($X$) and the assemble time ($Y$). Use a level of significance of .05. State the alternatives, decision rule, and conclusion. What is the p-value of the test?
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (e)  
 
 Estimate the mean assemble time for orders with the following numbers of items: $X = 70$ and $X=100$. Use separate 99 percent confidence intervals. Interpret your results.
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 ## (f)  
 
 The next order has 30 items. Obtain a 99 percent prediction interval for the assemble time for this order. Interpret your prediction interval.
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (g)  
 
 Set up the ANOVA table. Which elements are additive?
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 ## (h) 
 
 Conduct an $F$ test to decide whether or not there is a linear association between the assemble time and the number of items; control the $\alpha$ risk at .05. State the alternatives, decision rule, and conclusion.
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (i)  
 
 Obtain the $t^\star$ statistic for the test in part (h) and demonstrate numerically its equivalence to the $F^\star$ statistic obtained in part (h).
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 ## (j)  
 
 Calculate $R^2$ and $r$. What proportion of the variation in $Y$ is accounted for by introducing $X$ into the regression model?
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (k) 
 
 It took 50 minutes to assemble an order. Obtain a 95 percent confidence interval for the number of items in this order using both the delta and exact methods. Interpret your confidence interval.
 
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (l) 
 
 In part (k), is criterion in page 52 of Note 3 satisfied regarding the appropriateness of the approximate confidence interval?
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 \newpage
 
@@ -206,10 +403,17 @@ Residual standard error: 1.925 on 98 degrees of freedom
 
 Find the sample size $n$, SSE, $\hat\sigma^2$, and R-square $R^2$.
   
+\begin{bluebox}
+a
+\end{bluebox}
   
 ## (b)  
 
 Find the p-value for testing $H_0:\beta_0=0$ versus $H_1:\beta_0\neq0$, and the p-value for testing $H_0:\beta_1=0$ versus $H_1:\beta_1 < 0$.
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 ## (c)  
 
@@ -226,12 +430,23 @@ Find the sample coefficient of variation for the covariate $X$, CV$_X$ (see page
 3 -0.09899989 1.4047227  0.7196928 2.089753
 \end{verbatim}
  
+\begin{bluebox}
+a
+\end{bluebox}
+
 ## (d)  
 
 For $X$ with the same value as in the first observation (the first line of the output with $Y=2.69001380$), find the SE of estimating the mean response and the SE of $Y_{new} -\hat{Y}_{new}$.
+
+\begin{bluebox}
+a
+\end{bluebox}
 
 ## (e) 
 
 For a single observation with $X=1$, find the 95\% prediction interval for the response.
 
+\begin{bluebox}
+a
+\end{bluebox}
            
