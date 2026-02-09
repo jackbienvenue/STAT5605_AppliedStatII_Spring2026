@@ -293,39 +293,160 @@ Now, let's put our regression model to work to find out the fitted value for $X=
 $$
 (\hat{Y}|X=70) = 12.594 + 0.1094(70) = 20.252
 $$
-
+Our point estimate for $Y$ given $X=70$ in this simple linear regression model is $20.252$.
 \end{bluebox}
 
 ## (c) 
 
+```{r}
+# Calculate MSE and S_XX for CI computation:
+## MSE calculation:
+SSE <- sum(residuals(mod)^2)
+n <- length(y)
+MSE <- SSE / (n - 2)
+cat("MSE:", round(MSE, 3))
+
+## S_XX calculation:
+SXX <- sum((x - mean(x))^2)
+cat("S_XX:", round(SXX,3))
+
+# Confidence interval calculation
+SE_beta1 <- sqrt(MSE / SXX)
+
+## Check if manual calculation matches model:
+R_SE_beta1 <- summary(mod)$coefficients["x", "Std. Error"]
+cat("Calculated SE_beta_1:", SE_beta1, "; R-given SE_beta_1:", R_SE_beta1)
+
+## Critical t value:
+
+crit_t <- qt(0.975, 7) # 9 data points -> n-2 = 7 df
+
+upper_95_bound_beta_1 <- 0.1094 + crit_t*SE_beta1
+lower_95_bound_beta_1 <- 0.1094 - crit_t*SE_beta1
+print(paste0("95% CI for Beta_1: (", round(lower_95_bound_beta_1,3), ",", 
+             round(upper_95_bound_beta_1,3), ")"))
+```
+
 Estimate $\beta_1$ with a 95 percent confidence interval. Interpret your interval estimate.
 
 \begin{bluebox}
-a
+We can provide a $95\%$ confidence interval for $\beta_1$ by starting with our model-provided point estimate for $\beta_1$, $\hat{\beta_1} = 0.1094$ and building the outer bounds with the equation $
+\hat{\beta_1} \pm t_{1-\frac{\alpha}{2}, \enspace n-2} \times \text{se} \left[ \hat{\beta_1} \right], $
+where $\text{se} \left[ \hat{\beta_1} \right] = \sqrt{\frac{\text{MSE}}{S_{XX}}}$. We can calculate $S_{XX}$ and $\text{MSE}$ to provide those quantities to our confidence interval calculation, giving interval $(0.035, 0.183)$. Since we confidence interval does not contain zero, we can interpret this as evidence at the $95\%$ confidence level (in a two-sided scenario) that the regression coefficient $\beta_1$ is not equal to zero, and that therefore, a regression relationship exists between $X$ and $Y$ in this model. 
+
 \end{bluebox}
 
 ## (d)  
 
 Conduct a $t$ test to decide whether or not there is a linear association between number of items in an order ($X$) and the assemble time ($Y$). Use a level of significance of .05. State the alternatives, decision rule, and conclusion. What is the p-value of the test?
 
+
+
 \begin{bluebox}
-a
+In the prior sub-question, we used confidence intervals to express the idea of identifying whether there is a linear association between $X$ and $Y$. Now, we can approach that question again from a hypothesis testing perspective. Our hypotheses will be:
+
+$$
+H_0 : \beta_1 = 0,
+$$
+
+$$
+H_1 : \beta_1 \neq 0,
+$$
+As a slope ($\beta_1$) of $0$ would suggest no linear association. We will use a significance level $\alpha$ of $0.05$. Therefore, our decision rule will be to reject the null hypothesis which stated $\beta_1 = 0$ if we obtain a p-value of less than $0.05$ which is equivalent to rejected the null hypothesis if our test statistic exceeds $t_{0.975, \enspace 7}$ as we will use a two-sided test to mirror the construction of the confidence interval. 
+
+The test results are automatically included in R's model summary; for $\hat{\beta_1}$, we get a t test statistic of 3.495 (exceeding the critical value) and a p-value of 0.0101, below the significance level. Therefore, we reject the null hypothesis and can conclude at a $0.05$ significance level that the linear regression coefficient for this SLR model is nonzero, and therefore, that there is a significant linear association between $X$ and $Y$ in this model. 
+
 \end{bluebox}
 
 ## (e)  
 
 Estimate the mean assemble time for orders with the following numbers of items: $X = 70$ and $X=100$. Use separate 99 percent confidence intervals. Interpret your results.
 
+```{r}
+# Calculate bar{x}:
+x <- c(36, 34, 255, 103, 4, 555, 6, 60, 96)
+print(paste0("xbar = ", round(mean(x), 2)))
+
+# Compute Confidence Intervals:
+
+## Critical t-value
+crit_t_99ci_7df <- qt(0.995, 7)
+
+## Fitted on X=70:
+fitted_Y_x70 <- 20.252
+se_hat_Y_x70 <- sqrt( 
+  MSE*( (1/9) + ((mean(x) - 70)^2/SXX) )
+  )
+lower_bound_99ci_x70 <- fitted_Y_x70 - crit_t_99ci_7df*se_hat_Y_x70
+upper_bound_99ci_x70 <- fitted_Y_x70 + crit_t_99ci_7df*se_hat_Y_x70
+print(paste0("99% CI for Fitted Value of Y given X=70: (", 
+             round(lower_bound_99ci_x70, 3) , ", ", 
+             round(upper_bound_99ci_x70, 3) , ")"))
+
+## Fitted on X=100: 
+fitted_Y_x100 <- 23.534
+se_hat_Y_x100 <- sqrt( 
+  MSE*( (1/9) + ((mean(x) - 100)^2/SXX) )
+  )
+lower_bound_99ci_x100 <- fitted_Y_x100 - crit_t_99ci_7df*se_hat_Y_x100
+upper_bound_99ci_x100 <- fitted_Y_x100 + crit_t_99ci_7df*se_hat_Y_x100
+print(paste0("99% CI for Fitted Value of Y given X=100: (", 
+             round(lower_bound_99ci_x100, 3), ", ", 
+             round(upper_bound_99ci_x100, 3), ")"))
+```
+
 \begin{bluebox}
-a
+Now, instead of constructing a confidence interval for the linear regression coefficient, we are seeking confidence intervals for fitted values of two specific order sizes, $70$ and $100$. We will be building $99\%$ confidence intervals, which will end up being relatively wide compared to other choices of confidence intervals. We can build these confidence intervals by beginning with the fitted values and using the corresponding standard errors to expand into an interval. The CI for a fitted value in an SLR model is $(\hat{Y}|X=x) \pm t_{0.995, \enspace7} \times \sqrt{\text{MSE} \left( \frac{1}{n}+\frac{(\bar{X}-X_h)^2}{S_{XX}}\right)}$. The fitted values for $X=70$ and $X=100$ are $(\hat{Y}|X=70) = 12.594 + 0.1094(70) = 20.252$ and $(\hat{Y}|X=100) = 12.594 + 0.1094(100) = 23.534$, respectively. To compute our confidence intervals, we must know $\bar{X}$, which is $126.67$
+
+\textbf{Confidence Interval ($99\%$) for $\hat{Y_{X=70}}$:}
+
+The 99$\%$ confidence interval for $\hat{Y_{X=70}}$ is given by:
+
+$$
+(\hat{Y}|X=70) \pm t_{0.995, \enspace7} \times \sqrt{\text{MSE} \left( \frac{1}{9}+\frac{(126.67-70)^2}{S_{XX}}\right)} = (0.862, 39.642)
+$$
+
+\textbf{Confidence Interval ($99\%$) for $\hat{Y_{X=100}}$:}
+
+The 99$\%$ confidence interval for $\hat{Y_{X=100}}$ is given by:
+
+$$
+(\hat{Y}|X=100) \pm t_{0.995, \enspace7} \times \sqrt{\text{MSE} \left( \frac{1}{9}+\frac{(126.67-100)^2}{S_{XX}}\right)} = (4.952, 42.116)
+$$
+
+We can interpret this confidence interval as a range of values that we expect the mean of the assembly time for these respective order sizes ($X=70,100$) to exist in at a 99$\%$ confidence level.
 \end{bluebox}
 
 ## (f)  
 
 The next order has 30 items. Obtain a 99 percent prediction interval for the assemble time for this order. Interpret your prediction interval.
 
+```{r}
+# Build prediction interval for X=30
+
+fitted_val_30 <- predict(mod, newdata = data.frame(x = 30))
+se_pred30 <- sqrt(
+  MSE * (1 + (1/9) + (30-mean(x))^2/SXX)
+)
+
+lower_99_ci_bound_pred30 <- fitted_val_30 - crit_t_99ci_7df * se_pred30
+upper_99_ci_bound_pred30 <- fitted_val_30 + crit_t_99ci_7df * se_pred30
+
+print(paste0("99% Pred. Int. for Y for new obs. X=30: (", 
+             round(lower_99_ci_bound_pred30, 3), ", ", 
+             round(upper_99_ci_bound_pred30, 3), ")"))
+```
+
 \begin{bluebox}
-a
+The spirit of this question is similar to the last, but this time we are interested in building a \textit{prediction interval}, which is formulated in a slightly different way to a typical confidence interval for the mean response and which has a different interpretation. This time, our interval can be constructed under the structure $(\hat{\beta}_0 + \hat{\beta}_1 X_{\text{new}}) \pm t_{1-\frac{\alpha}{2},\;n-2} \sqrt{ \text{MSE} \left( 1 + \frac{1}{n} + \frac{(X_{\text{new}} - \bar{X})^2}{S_{XX}} \right)}$.
+
+Our $99\%$ prediction interval for $X=30$ is therefore:
+
+$$
+\left(12.594 + 0.10936(30)\right) \pm t_{0.995, \; 7} \sqrt{ \text{MSE} \left( 1 + \frac{1}{9} + \frac{(30 - 126.67)^2}{S_{XX}} \right)} = (-43.059, 74.809)
+$$
+
+Since we cannot have negative time for filling an order, the interpretability of our prediction interval suffers. We obtain this negative bound because of the large interval selection, low sample size, and observed variance large enough to push the bound negative (there is no constraint for having strictly positive CI/PI bounds in SLR). We can still say with $99\%$ confidence that a future observation with $X=30$ will fall in our prediction interval. 
 \end{bluebox}
 
 ## (g)  
