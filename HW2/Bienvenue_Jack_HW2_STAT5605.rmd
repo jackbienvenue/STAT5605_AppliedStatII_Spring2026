@@ -38,36 +38,30 @@ cat("t critical value:", t_crit_1a)
 What is the standard error of the fitted value of $Y$ at $X=222$ (i.e., $se(\hat{Y})$)?
 
 \begin{bluebox}
-We can calculate $\text{se}(\hat{Y})$ by using the formula $\text{se}(\hat{Y}_{X=222}) = \sqrt{\text{MSE}\left(\frac{1}{n}+\frac{(\bar{X}-222)^2}{S_{XX}}\right)}$. So, we must find values for $\bar{X}$, $S_{XX}$. 
+We can calculate $\text{se}(\hat{Y})$ by using the formula $\text{se}(\hat{Y}_{X=222}) = \sqrt{\text{MSE}\left(\frac{1}{n}+\frac{(\bar{X}-222)^2}{S_{XX}}\right)}$. So, we must find values for $\bar{X}$, $S_{XX}$.
 
 The value $S_{XX}$ is not immediately available from the given information, but it can be retrieved from what we know about $0.016 = \text{se}(b_1) = \sqrt{\frac{\text{MSE}}{S_{XX}}}$. Given $\text{MSE} = 0.14$, we can rearrange the equation to become $S_{XX} = \frac{\text{MSE}}{(\text{se}(b_1))^2} = \frac{0.14}{0.016^2} = 546.875$.
 
-To find $\bar{X}$ to calculate the standard error we are seeking, we will have to work backwards from the upper value of the $95\%$ predictive interval we are given. The upper end of this predictive interval is defined by the formula $\text{Upper Bound} = \hat{Y}(222)+t_{0.975, n-2}\sqrt{\text{MSE}\left(1+\frac{1}{n}+\frac{(222-\bar{X})^2}{S_{XX}} \right)}$. To calculate the value of $\bar{X}$, we can compute $\hat{Y}$ given $X=222$ and input our known values into the equation and rearrange:
+To find $\bar{X}$ to calculate the standard error we are seeking, we will have to work backwards from the upper value of the $95\%$ predictive interval we are given. The upper end of this predictive interval is defined by the formula $\text{Upper Bound} = \hat{Y}(222)+t_{0.975, n-2}\sqrt{\text{MSE}\left(1+\frac{1}{n}+\frac{(222-\bar{X})^2}{S_{XX}} \right)}$. The fitted value $\hat{Y}$ at $x=222$ is:
 
 $$
-\hat{Y}(222) = -42+0.9(220) = 157.8
+\hat{Y}(222) = -42+0.9(222) = 157.8.
 $$
-
-Now, we can approach $\bar{X}$:
-
-$$
-165.2 = 157.8 + 2.101\sqrt{0.14\left(1+\frac{1}{20} + \frac{(222-\bar{X})^2}{546.875} \right)} = 
-$$
-$$
-\frac{\left(\frac{165.2-157.9}{2.101}\right)^2}{0.14} - 1.05 = \frac{(222-\bar{X})^2}{546.875} = 
-$$
+To calculate the value of $\bar{X}$, we can take our fitted value and input our known values into the equation for the upper bound and rearrange:
 
 $$
-= \bar{X} = 222 - \sqrt{ (546.875)\left( \frac{\left(\frac{165.2-157.8}{2.101}\right)^2}{0.14} - 1.05 \right) } = -44.655
+\bar{X} =  222-\sqrt{S_{XX}\left(\frac{\left( \frac{\text{Upper Bound}-\hat{Y}(222)}{t_{0.975, n-2}} \right)^2}{\text{MSE}} - 1 -\frac{1}{n} \right)}
+=
+$$
+$$
+= 222-\sqrt{546.875\left(\frac{\left( \frac{165.2-157.8}{2.100922} \right)^2}{0.14} - 1 -\frac{1}{20} \right)} = 3.167
 $$
 
-Now, the standard error of $\hat{Y}$ at $X=222$ can finally be calculated:
+Now, we can calculate the standard error: 
 
 $$
-\text{se}(\hat{Y}_{X=222}) = \sqrt{\text{0.14}\left(\frac{1}{20}+\frac{(-44.655-222)^2}{546.875}\right)} = 4.2707
+\text{se}(\hat{Y}_{X=222}) = \sqrt{\text{0.14}\left(\frac{1}{20}+\frac{(3.167-222)^2}{546.875}\right)} = 3.502
 $$
-
-FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 \end{bluebox}
 
@@ -76,7 +70,7 @@ FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!
 What are the predicted value of $Y_{new}$ and its standard error at $X_{new}=222$?
 
 \begin{bluebox}
-a
+In the prior part, we found that $\hat{Y}(222) = -42 + 0.9(222) =157.8$. Further, $se(Y_{new}) = \sqrt{\text{MSE}\left( 1 + \frac{1}{n} + \frac{x_{new} - \bar{X}^2}{S_{XX}} \right)}$, which we found to be $\approx 3.5$.
 \end{bluebox}
 
 ## (c) 
@@ -84,7 +78,9 @@ a
 How much does use of this SLR model reduce the uncertainty in predicting the response variable $Y$?
 
 \begin{bluebox}
-a
+We can approach this problem by finding $R^2$. Since we don't explicitly have information about $SSR$, $SSE$, or $SSTO$, we can approach the $R^2$ calculation using the $R^2 = \frac{F}{F+(n-2)}$ formulation. We can calculate our F-statistic as $F = \frac{MSR}{MSE} = \frac{\hat{\beta}^2_1 S_{XX}}{MSE} = \frac{0.81\times546.875}{0.14} = 3164.06$. So, $R^2 = \frac{3164.06}{3164.06 + 18}= 0.9943.$
+
+So, using this SLR model reduces uncertainty in predicting $Y$ by about $99.43\%$.
 \end{bluebox}
 
 \newpage
@@ -720,7 +716,14 @@ In the exact method, we are seeking two $x$-values: one for where $Y=50$ interse
 $$
 \hat{\beta}_1^2 (X^\star - \hat{X}_0)^2 = \hat{\sigma}^2 t^2_{1-\alpha/2, n-2}\left( 1 + \frac{1}{n} + \frac{(X^\star - \bar{X})^2}{S_{XX}} \right).
 $$
-The roots we identify will be the bounds of the exact interval. We will calculate the roots using R to avoiding excessive rounding errors. The confidence interval is $(-32.13, 1078.29)$. Once again we run into an issue with encountering a negative lower bound. We cannot have negative items in the order. However, we still can expect the true number of items for an order taking $50$ minutes to fall in our CI at a 95% confidence level. We should realize that our confidence intervals end up being extremely broad in this example. Seeking more data at well-placed $X$ values may help pave the road to narrower confidence intervals in the future. 
+
+\textit{Continued on next page}
+\end{bluebox}
+
+\newpage 
+
+\begin{bluebox}
+The roots we identify will be the bounds of the exact interval. We will calculate the roots using R to avoiding excessive rounding errors. The confidence interval is $(-32.13, 1078.29)$. Once again we run into an issue with encountering a negative lower bound. We cannot have negative items in the order. However, we still can expect the true number of items for an order taking $50$ minutes to fall in our CI at a $95\%$ confidence level. We should realize that our confidence intervals end up being extremely broad in this example. Seeking more data at well-placed $X$ values may help pave the road to narrower confidence intervals in the future. 
 
 \end{bluebox}
 
@@ -841,11 +844,11 @@ Find the sample coefficient of variation for the covariate $X$, CV$_X$ (see page
 \begin{bluebox}
 According to page 45 of Note 1, the coefficient of variation for $X$ can be defined as: $ CV_X = (S_{XX} /n)^{1/2}/|\bar{X}|$. We know that $n=100$, but we need to find $S_{XX}$ and $\bar{X}$ to round out our computation. 
 
-To find $S_{XX}$, we can use the relation that $S_{XX} = \frac{\hat{\sigma}^2}{\text{SE}(\hat{\beta}_1)^2}$. We know that $\hat{\sigma}^2 = 3.7056$ from our work in Part (a) and that $\text{SE}(\hat{\beta}_1) = 0.2192$ from the outputs provided by the question. So, $S_{XX} = \frac{3.7056}{0.2192} = 16.905$.
+To find $S_{XX}$, we can use the relation that $S_{XX} = \frac{\hat{\sigma}^2}{\text{SE}(\hat{\beta}_1)^2}$. We know that $\hat{\sigma}^2 = 3.7056$ from our work in Part (a) and that $\text{SE}(\hat{\beta}_1) = 0.2192$ from the outputs provided by the question. So, $S_{XX} = \frac{3.7056}{0.2192^2} = 71.122$.
 
 To find $\bar{X}$, we should realize that we are given $\bar{Y}=0.9112$ by the problem, and that in SLR, we can be confident that $\bar{Y} = \hat{\beta}_0 + \hat{\beta}_1\bar{X}$. Rearranging and plugging in values, we can acquire: $\bar{X} = \frac{\hat{Y} - \hat{\beta}_0 }{\hat{\beta}_1} = \frac{0.9112-0.9026}{0.3776} = 0.0228$. 
 
-Finally, we can acquire $CV_{X}$ as $CV_X = \frac{ \sqrt{\frac{16.905}{100}} }{ |0.0228| } \approx 18.0$.
+Finally, we can acquire $CV_{X}$ as $CV_X = \frac{ \sqrt{\frac{71.122}{100}} }{ |0.0228| } \approx 37$.
 \end{bluebox}
 
 ## (d)  
@@ -892,6 +895,30 @@ $$
 For a single observation with $X=1$, find the 95\% prediction interval for the response.
 
 \begin{bluebox}
-a
+Our prediction interval can be constructed according to the formula 
+
+$$
+\hat{Y}(x_0) \pm t_{0.975, \; n-2} \times \text{SE}(Y_{new}-\hat{Y}_{new}).
+$$
+So, we need to compute a fitted value and standard error to build our interval:
+
+\textbf{Fitted Value:}
+
+$\hat{Y}(1) = 0.9026+0.3776(1)=1.2802$
+
+\textbf{Standard Error:}
+
+$$
+\text{SE}(Y_{new}-\hat{Y}_{new}) = 1.925 
+\sqrt{ 
+1 + \frac{1}{100} + \frac{(1-0.0228)^2}{71.122}
+}
+= 1.947,
+$$
+
+\textbf{Prediction interval:}
+
+So, knowing that $t_{0.975, \; 98} = 1.98447$ the prediction interval can be formed as $1.2802 \; \pm \; 1.947 \; \times \; 1.98447  = (-2.584 , \; 5.144)$.
+
 \end{bluebox}
            
