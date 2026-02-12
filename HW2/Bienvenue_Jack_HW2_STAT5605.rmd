@@ -188,7 +188,25 @@ A random sample of 100 paired observations $(X_i, Y_i)$, $i=1,2,\dots, 100$ was 
 What are the LS estimates $(b_0,b_1)'$ of $(\beta_0,\beta_1)'$? 
 
 \begin{bluebox}
-a
+We only have two unique pairs for $(X_i, Y_i)$, so a straight line must be drawn which passes through both unique points, $(2,2)$ and $(1,10)$. Using basic algebra, we can identify this line by finding the slope and intercept:
+
+\textbf{Slope:}
+
+The slope can be calculated simply as $\frac{Y_1-Y_2}{X_1-X_2} = \frac{2-10}{2-1} = -8$.
+
+\textbf{Intercept:}
+
+The intercept of the LS fit line can be identified using the slope and one of our unique points:
+
+$$
+\hat{y} = -8x + \hat{\beta}_0 \implies \hat{\beta}_0 = \hat{y}+8x, \text{ so given observed point (2,2):}
+$$
+$$
+\hat{\beta}_0 = 2+8(2) = 18.
+$$
+
+\textbf{Conclusion:}
+Therefore, the LS coefficient estimates will be $(b_0,b_1)' = (18, -8)'$.
 \end{bluebox}
 
 ## (b)  
@@ -196,7 +214,18 @@ a
 What are the standard errors of $b_0$ and $b_1$, respectively? 
 
 \begin{bluebox}
-a
+We would expect the standard errors for the coefficients to be exactly zero because all of the points lie on the LS fit line. To confirm, can calculate the standard errors for $\hat{\beta_0}$ and $\hat{\beta_1}$ using their respective formulas:
+
+$$
+\text{SE}(\hat{\beta_0}) = \sigma\sqrt{\frac{1}{n}+\frac{\bar{X}^2}{S_{XX}}}; \qquad \text{SE}(\hat{\beta_1 }) = \frac{\sigma}{\sqrt{S_{XX}}},
+$$
+But, we must make sure that all required quantities are known first. We know that $n=100$. We can calculate $\bar{X}$ as we are given the full data: $\bar{X} = \frac{25(1) + 75(2)}{100} = 1.75$. Next, we can obtain $S_{XX} = \sum{(X_i - \bar{X})^2} = 75(2-1.75)^2 + 25(1-1.75)^2 = 18.75$. Finally, we can estimate $\sigma$ with $\hat{\sigma} = \sqrt{\text{MSE}} = 0$ (MSE is zero because all points exist on the LS line for this data). So, 
+
+$$
+\text{SE}(\hat{\beta_0}) = 0\sqrt{\frac{1}{100}+\frac{1.75^2}{18.75}} = 0; \qquad \text{SE}(\hat{\beta_1 }) = \frac{\sigma}{\sqrt{S_{XX}}} = \frac{0}{\sqrt{18.75}} = 0.
+$$
+
+
 \end{bluebox}
 
 ## (c)  
@@ -204,7 +233,9 @@ a
 What is the coefficient of determination $R^2$? 
 
 \begin{bluebox}
-a
+
+The coefficient of determination $R^2$ can be calculated as $R^2 = \frac{SSR}{SSTO}$. In this model for this data set, every single point lays on the LS fit line, meaning that necessarily, $SSR=SSTO$. Since $SSTO$ is defined ($Y$ has two different values), $R^2 = 1$. 
+
 \end{bluebox}
 
 ## (d)  
@@ -212,7 +243,38 @@ a
 What is the hat matrix $H$? 
 
 \begin{bluebox}
-a
+The SLR hat matrix is $ \mathbf{H} = \mathbf{X} ( \mathbf{X}' \mathbf{X})^{-1} \mathbf{X}'$. The design matrix for this problem is:
+
+$$
+\begin{pmatrix} 
+  1 & x_1 \\\\ 
+  1 & x_2 \\\\
+  \vdots & \vdots \\\\
+  1 & x_{100} \\\\
+\end{pmatrix},
+$$
+
+Where 25 of the $x_i$'s are $1$ and the other 75 are $2$. In SLR, the components of $\mathbf{H}$ can be calculated as $h_{ij} = \frac{1}{n} + \frac{(x_i- \bar{X})(x_j - \bar{X})}{S_{XX}}$. This is helpful because we can avoid matrix multiplication and inversion computations, which are generally costly. In part (b), we went ahead and calculated $\bar{X}$ and $\S_{XX}$, which can now help us. Based on the fact that $X \in \mathbb{R}^{100 \times 2}$, the hat matrix $\mathbf{H} \in \mathbb{R}^{100 \times 100}$, quite a large matrix. However, we can simplify the matrix by recognizing that we will only have 3 unique combinations since we only have 2 unique $x$ values. These cases are:
+
+For entries relating two points in $(2,2)$:
+
+$$
+h_{x=2, \; x=2} = \frac{1}{100} + \frac{(2 - 1.75)(2 - 1.75)}{18.75} = 0.01333
+$$
+
+For entries relating two points in $(1,10)$:
+
+$$
+h_{x=1, \; x=1} = \frac{1}{100} + \frac{(1 - 1.75)(1 - 1.75)}{18.75} = 0.04
+$$
+
+For entries relating mixed points $(2,2)$ and $(1,10)$:
+
+$$
+h_{x=1, \; x=2} = \frac{1}{100} + \frac{(1 - 1.75)(2 - 1.75)}{18.75} = 0
+$$
+So, the hat matrix is a 100 x 100 matrix with $h_{ii} = 0.04$ for the 25 observations with $x=1$ and $h_{ii} = 0.01333$ for the 75 observations with $x=2$. Otherwise, entries are $0$.
+
 \end{bluebox}
   
 ## (e)  
@@ -220,7 +282,7 @@ a
 What is an estimate of $\sigma^2$? 
 
 \begin{bluebox}
-a
+We can estimate $\sigma^2$ as $\hat{\sigma}^2 = \text{MSE} = \frac{\text{SSE}}{n-2}$ in SLR, but since all our points fit on the LS line, we have no errors, i.e. $\text{SSE} = $. So, our estimate of $\sigma^2$ is zero.
 \end{bluebox}
 
 
@@ -453,8 +515,51 @@ Since we cannot have negative time for filling an order, the interpretability of
 
 Set up the ANOVA table. Which elements are additive?
 
+```{r}
+# Use anova() to get info:
+anova_table <- anova(mod)
+
+# Build full SLR ANOVA table:
+SSR <- anova_table["x", "Sum Sq"]         # Sum of Squares - Regression
+SSE <- anova_table["Residuals", "Sum Sq"] # Sum of Squares - Error
+SSTO <- SSR + SSE                     # Total Sum of Squares
+
+df_SLR <- anova_table["x", "Df"]          # = 1
+df_E   <- anova_table["Residuals", "Df"]  # = n - 2
+df_T   <- df_SLR + df_E               # = n - 1
+
+MSR <- SSR / df_SLR # Mean Square for Regression
+MSE <- SSE / df_E   # Mean Square Error
+
+F_star <- MSR / MSE #
+p_val  <- pf(F_star, df_SLR, df_E, lower.tail = FALSE) #
+
+data.frame( # Table form
+  Source = c("SLR", "Error", "Corrected Total"),
+  df = c(df_SLR, df_E, df_T),
+  SS = c(SSR, SSE, SSTO),
+  MS = c(MSR, MSE, NA),
+  F = c(F_star, NA, NA),
+  `P-value` = c(p_val, NA, NA)
+)
+```
+
 \begin{bluebox}
-a
+We can build the ANOVA table using the built-in R ``anova" function to get most of the important values and fill in the true, full ANOVA table that we are seeking in the style of the ANOVA table on Slide 22 in Note 3:
+
+\[
+\begin{array}{lcccccc}
+\hline
+\text{Source of Variation} & \text{df} & \text{SS} & \text{MS} & F & \text{P-value} \\
+\hline
+\text{SLR} & 1 & 3017.122 & 3017.122 & 12.214 & 0.0101 \\
+\text{Error} & 7 & 1729.100 & 247.014 &  &  \\
+\text{Corrected Total} & 8 & 4746.222 &  &  &  \\
+\hline
+\end{array}
+\]
+
+For additivity, we have some key relationships. First, $\text{SSTO} = \text{SSR} + \text{SSE}$. Second, degrees of freedom are additive in SLR: the degrees of freedom from SLR are 1, and the degrees of freedom from error are $n-2$. Together, they sum to $n-1$.
 \end{bluebox}
 
 ## (h) 
@@ -462,7 +567,22 @@ a
 Conduct an $F$ test to decide whether or not there is a linear association between the assemble time and the number of items; control the $\alpha$ risk at .05. State the alternatives, decision rule, and conclusion.
 
 \begin{bluebox}
-a
+Now, we would like to use an $F$ test for linear association between $X$ and $Y$. We can execute the test using R, but let's explicitly set up our test here:
+
+We have the hypotheses:
+
+$$
+H_0: \beta_1 = 0,
+$$
+
+$$
+H_A: \beta_1 \neq 0.
+$$
+
+We will set our significance level $\alpha$ to $0.05$, and therefore we will reject our null hypothesis if we find the p-value of our test to be below this threshold.
+
+We do not have to write any more code to answer this problem as, for simple linear regression, the test of the model that we observe in the ANOVA table is identical to the test we are looking to perform. Therefore, we obtained a p-value of $0.0101$ for our test, below the pre-specified significance level threshold. Therefore, we reject the null hypothesis which suggested that no linear association exists between the number of items in an order and the order preparation time.
+
 \end{bluebox}
 
 ## (i)  
@@ -470,7 +590,20 @@ a
 Obtain the $t^\star$ statistic for the test in part (h) and demonstrate numerically its equivalence to the $F^\star$ statistic obtained in part (h).
 
 \begin{bluebox}
-a
+In simple linear regression, the t- and F-test statistics yield identical results. Indeed, in parts (d) and (h), we can observe that the p-values for the two tests for $H_0: \beta_1 = 0$ are identical.
+
+Numerically, we can deduce why these test results coincide exactly. Under this null hypothesis:
+
+$$
+t^\star = \frac{\hat{\beta_1 }-0 }{\text{SE}(\hat{\beta_1})} = \frac{\hat{\beta_1 } }{\sqrt{\frac{MSE}{S_{XX}}}} = 3.495
+,
+$$
+
+$$
+F^\star = \frac{MSR}{MSE} = \frac{\frac{SSR}{1}}{MSE} = \frac{SSR}{MSE} = \frac{\hat{\beta_1^2}S_{XX}}{MSE} = \frac{\hat{\beta_1^2}}{\frac{MSE}{S_{XX}}} = (t^\star)^2 = 12.214,
+$$
+As we can see, the test statistics are composed of the same components. In SLR, $T \sim t_\nu$ and $T^2 \sim F_{1, \nu}$. So, $t^\star \sim t_{n-2}$ and $(t^\star)^2 = F^\star \sim F_{1, \nu}$. The tests are equivalent. Note that SLR is a special case, and these relationships are not necessarily true in general for other regression scenarios.
+
 \end{bluebox}
 
 ## (j)  
@@ -478,23 +611,136 @@ a
 Calculate $R^2$ and $r$. What proportion of the variation in $Y$ is accounted for by introducing $X$ into the regression model?
 
 \begin{bluebox}
-a
+\textbf{Coefficient of Determination Calcualtion:}
+
+We can calculate $R^2$ using either the $SSR$ or $SSE$, $R^2 = \frac{SSR}{SSTO} = 1 - \frac{SSE}{SSTO}$. Let's go with the $SSR$-based formula for this example:
+
+$$
+R^2 = \frac{3017.122}{4746.222} = 0.636.
+$$
+
+Our coefficient of determination is $0.636$, which suggests that $63.6\%$ of the variation of $Y$ can be captured by variation in $X$ introduced by using this regression model. 
+
+\textbf{Correlation Calculation:}
+
+Now, we can calculate the correlation coefficient, $r$, which is identically the square root of $R^2$ for the simple linear regression model, so $\sqrt{R^2} = \sqrt{0.636} = 0.797.$
+
 \end{bluebox}
 
 ## (k) 
 
 It took 50 minutes to assemble an order. Obtain a 95 percent confidence interval for the number of items in this order using both the delta and exact methods. Interpret your confidence interval.
 
+```{r}
+# Get Critical t value:
+crit_t_95_2side_7 <- qt(0.975, 7)
+cat("Critical t (0.95%, two-sided, 7df):", crit_t_95_2side_7)
+
+# Check Delta Method Calculation:
+Y0 <- 50
+b0  <- coef(mod)[1]
+b1  <- coef(mod)[2]
+n   <- length(mod$fitted.values)
+Xbar <- mean(mod$model[,2])
+SXX  <- sum((mod$model[,2] - Xbar)^2)
+MSE <- summary(mod)$sigma^2
+X_hat <- (Y0 - b0) / b1
+se_X_hat <- sqrt(
+  (MSE / b1^2) *
+  (1 + 1/n + (X_hat - Xbar)^2 / SXX)
+)
+CI_delta <- c(
+  lower = X_hat - crit_t_95_2side_7 * se_X_hat,
+  upper = X_hat + crit_t_95_2side_7 * se_X_hat
+)
+list(
+  X_hat = X_hat,
+  SE = se_X_hat,
+  t_crit = crit_t_95_2side_7,
+  CI_delta = CI_delta
+)
+
+# Exact Method Calculation:
+b1    <- coef(mod)[2]
+X_hat <- X_hat
+sigma2_hat <- MSE
+tcrit <- qt(0.975, n - 2)
+A <- b1^2 - (sigma2_hat * tcrit^2) / SXX
+B <- -2 * b1^2 * X_hat +
+     2 * (sigma2_hat * tcrit^2 * Xbar) / SXX
+C <- b1^2 * X_hat^2 -
+     sigma2_hat * tcrit^2 *
+     (1 + 1/n + (Xbar^2 / SXX))
+roots <- polyroot(c(C, B, A))
+roots_real <- Re(roots[abs(Im(roots)) < 1e-8])
+X_exact_CI <- sort(roots_real)
+X_exact_CI
+```
+
 \begin{bluebox}
-a
+
+We have to focus on using prediction intervals for his problem as $Y=50$ as an assembly time represents purely a realization of $Y$, not necessarily a mean response for some given value of $X = x$.
+
+\textbf{Delta Method:}
+
+The Delta Method can be employed here to essentially ``turn the fitted model on its head" and find an estimate for $(X \; | \; y=50)$ and build out appropriate standard errors to produce an approximate 95\% confidence interval for the number of items in the order. So, instead of finding a fitted value as $y=\hat{\beta_0} + \hat{\beta_1}X$, we are actually getting a point estimate through $\hat{X} = \frac{Y-\beta_0}{\beta_1}$. In our problem, this point estimate is:
+
+$$
+\hat{X} = \frac{50-12.594}{0.10936} = 342.04 \approx 342\text{ items}.
+$$
+
+Now, we need our critical t-value, which will be $t_{0.975, \; 7}$ because we are building a two-sided, 95% CI. In combination, we must find the standard error of our point estimate. Using the Delta Method with the prediction interval setup, we are given (by Slide 44 of Note 3): 
+
+$$
+\widehat{se}(\hat{X}) = \sqrt{\frac{\text{MSE}}{\hat{\beta_1^2}} 
+\left[ 
+1 + \frac{1}{n} + \frac{(\hat{X}-\bar{X})^2}{S_{XX}}
+\right]},
+$$
+With this example's values, this can be calculated as:
+
+$$
+\widehat{se}(342.04) = \sqrt{\frac{274.014}{{0.1094^2}} 
+\left[ 
+1 + \frac{1}{9} + \frac{(342.04-27.67)^2}{252290}
+\right]} = 185.49,
+$$
+So the Delta Method confidence interval is:
+
+$$
+\hat{X} \; \pm \; t_{0.975, \; 7} \times \widehat{se}(342.04) = 342.04 \pm 2.364\times185.49 = (-44.43, 728.53)
+$$
+
+While we cannot have a negative number of items in an order, we can still be sure that the number of items in an order that takes $50$ minutes to fill will be in our confidence interval with 95\% confidence. It may be useful to round our CI to integer values as the number of items in an order is an integer value. The rounded CI will be $(-45, 729)$.
+
+\textbf{Exact Method:}
+
+In the exact method, we are seeking two $x$-values: one for where $Y=50$ intersects the upper prediction bound for $Y$, and one for where $Y=50$ intersects the lower prediction band for $Y$. We can make this happen by solving:
+
+$$
+\hat{\beta}_1^2 (X^\star - \hat{X}_0)^2 = \hat{\sigma}^2 t^2_{1-\alpha/2, n-2}\left( 1 + \frac{1}{n} + \frac{(X^\star - \bar{X})^2}{S_{XX}} \right).
+$$
+The roots we identify will be the bounds of the exact interval. We will calculate the roots using R to avoiding excessive rounding errors. The confidence interval is $(-32.13, 1078.29)$. Once again we run into an issue with encountering a negative lower bound. We cannot have negative items in the order. However, we still can expect the true number of items for an order taking $50$ minutes to fall in our CI at a 95% confidence level. We should realize that our confidence intervals end up being extremely broad in this example. Seeking more data at well-placed $X$ values may help pave the road to narrower confidence intervals in the future. 
+
 \end{bluebox}
 
 ## (l) 
 
 In part (k), is criterion in page 52 of Note 3 satisfied regarding the appropriateness of the approximate confidence interval?
 
+```{r}
+# Compute ratio:
+ratio <- (crit_t_95_2side_7^2*MSE)/(b1^2*SXX)
+cat("Ratio:", ratio)
+```
+
 \begin{bluebox}
-a
+Let's check on the size of: 
+$$
+\frac{t^2_{1-\alpha/2, \; n-2} \text{MSE}}{\hat{\beta_1^2}S_{XX}}
+$$
+To evaluate the appropriateness of the approximate confidence interval. This ratio ends up being approximately $0.458$. While this value isn't very large, we may begin to experience the delta method approximation working more poorly than we would like it to. This criterion is only somewhat satisfied.
+
 \end{bluebox}
 
 \newpage
@@ -503,7 +749,7 @@ a
 
 In fitting a simple linear regression on a data set with mean response $\bar{Y}=0.9112$ and covariate $X$ ranging from -2.224 to  2.441, the following partial R outputs are obtained.
 
-\begin{verbatim}
+```r
 Call:
 lm(formula = y ~ x)
 Coefficients:
@@ -518,22 +764,63 @@ x          1   11.0
 Residuals 98
 
 Residual standard error: 1.925 on 98 degrees of freedom
-\end{verbatim}
+```
 
 ## (a) 
 
 Find the sample size $n$, SSE, $\hat\sigma^2$, and R-square $R^2$.
   
 \begin{bluebox}
-a
+We can use the information given in this R output to identify all of these quantities:
+
+\textbf{Finding $n$:}
+
+In the last line of the output we observe that the residuals have $98$ degrees of freedom. We know from the structure of SLR that $\beta_0$ and $\beta_1$ each consume a degree of freedom for the residuals, and therefore the original sample size was $100$. 
+
+\textbf{Finding $\hat{\sigma}^2$:}
+
+We will temporarily jump ahead of finding $SSE$ as identifying $\hat{\sigma}^2$ will make finding $SSE$ much easier. The estimated variance of the error term $\epsilon$, $\hat{\sigma}^2$, can be identified through the formula $\text{Residual standard error}= \sqrt{\hat{\sigma}^2}$. So, $(\text{Residual standard error})^2 = \hat{\sigma}^2 = 1.925^2 \approx 3.7056.$
+
+\textbf{Finding $SSE$:}
+
+Now, we can find the SSE using the relationship $\hat{\sigma}^2 = \frac{SSE}{n-2}$, rearranging and solving to obtain $SSE = (n-2)\hat{\sigma}^2 = 98\times3.7056 \approx 363.1512$
+
+\textbf{Finding $R^2$:}
+
+We can find $R^2$ using its $R^2 = \frac{SSR}{SSTO}$ construction. We found the error sum of squares, $SSE = 363.1512$, and we are given the residual sum of squares, $11.0$, whose sum, the total sum of squares, is $363.1512+11.0 = 374.2$. So, $R^2 = \frac{11.0}{374.2} \approx 0.0294$.
+
 \end{bluebox}
   
 ## (b)  
 
 Find the p-value for testing $H_0:\beta_0=0$ versus $H_1:\beta_0\neq0$, and the p-value for testing $H_0:\beta_1=0$ versus $H_1:\beta_1 < 0$.
 
+```{r}
+# p-value calculations
+## First test
+test_1_p_val <- 2 * (1 - pt(abs(4.69), df = 98))
+## Second test
+test_2_p_val <- pt(1.72, df = 98)
+
+print(paste0("The p-value for test 1 was: ", round(test_1_p_val, 7), 
+            ". The p-value for test 2 was: ", round(test_2_p_val, 3), "."
+            ))
+```
+
 \begin{bluebox}
-a
+Now, let's calculate the p-values for these hypotheses. We will need our test statistic to compute the p-values, so we can obtain those using formulas $t_0 = \frac{\hat{\beta}_0-\beta_{0,0}}{\text{SE}(\hat{\beta}_0)} = \frac{0.9026}{0.1926} = 4.686$ and $t_1 = \frac{\hat{\beta}_1-\beta_{1,0}}{\text{SE}(\hat{\beta}_1)} = \frac{0.3776}{0.2192} = 1.723$
+
+\textbf{Test of $H_0:\beta_0=0$ versus $H_1:\beta_0\neq0$: }
+
+The p-value for this test is equivalent to the probability that the absolute value of the $t^\star$ test statistic is less than or equal or the absolute value of a critical value $t_{n-2}$.
+
+Therefore, we can calculate $\text{p-value} = P(|t_{n-2}| \le |t^\star|) = P(|t_{98}| \le 4.686 = 8.8 \times 10^{-6})$.
+
+\textbf{Test of $H_0:\beta_1=0$ versus $H_1:\beta_1 < 0$: }
+
+The p-value for this test is equivalent to the probability that the test statistic is greater than the critical value. 
+
+So, we can calculate $\text{p-value} = P(t_{n-2} < t^\star) = P(t_{98} < 1.723) = 0.956$ 
 \end{bluebox}
 
 ## (c)  
@@ -552,15 +839,52 @@ Find the sample coefficient of variation for the covariate $X$, CV$_X$ (see page
 \end{verbatim}
  
 \begin{bluebox}
-a
+According to page 45 of Note 1, the coefficient of variation for $X$ can be defined as: $ CV_X = (S_{XX} /n)^{1/2}/|\bar{X}|$. We know that $n=100$, but we need to find $S_{XX}$ and $\bar{X}$ to round out our computation. 
+
+To find $S_{XX}$, we can use the relation that $S_{XX} = \frac{\hat{\sigma}^2}{\text{SE}(\hat{\beta}_1)^2}$. We know that $\hat{\sigma}^2 = 3.7056$ from our work in Part (a) and that $\text{SE}(\hat{\beta}_1) = 0.2192$ from the outputs provided by the question. So, $S_{XX} = \frac{3.7056}{0.2192} = 16.905$.
+
+To find $\bar{X}$, we should realize that we are given $\bar{Y}=0.9112$ by the problem, and that in SLR, we can be confident that $\bar{Y} = \hat{\beta}_0 + \hat{\beta}_1\bar{X}$. Rearranging and plugging in values, we can acquire: $\bar{X} = \frac{\hat{Y} - \hat{\beta}_0 }{\hat{\beta}_1} = \frac{0.9112-0.9026}{0.3776} = 0.0228$. 
+
+Finally, we can acquire $CV_{X}$ as $CV_X = \frac{ \sqrt{\frac{16.905}{100}} }{ |0.0228| } \approx 18.0$.
 \end{bluebox}
 
 ## (d)  
 
 For $X$ with the same value as in the first observation (the first line of the output with $Y=2.69001380$), find the SE of estimating the mean response and the SE of $Y_{new} -\hat{Y}_{new}$.
 
+```{r}
+# Find critical value of t_0.975,98
+crit_t_6d <- qt(0.975, 98)
+
+print(paste0("Critical t: ", round(crit_t_6d, 5)))
+```
+
 \begin{bluebox}
-a
+
+\textbf{SE of estimating the mean response:}
+
+The $\text{SE}$ for estimating the mean response can be identified using the confidence interval for the mean response at the value of x where $Y=2.69001380$. This confidence interval was constructed as $\hat{y}_1 \pm t_{0.975, \; 98}\text{SE}(\hat{Y}(x_{y=2.69}))$. Half the width of the confidence interval would represent $t_{0.975, \; 98}\text{SE}(\hat{Y}(x_{y=2.69}))$. 
+
+That quantity is $\frac{2.040575-0.7183901}{2} = 0.6611$. Dividing by $t_{0.975, \; 98}$, $\text{SE}(\hat{Y}(x_{y=2.69}) = \frac{0.6611}{t_{0.975, \; 98}} = \frac{0.6611}{1.98447} = 0.3331$.
+
+\textbf{SE of $Y_{new} - \hat{Y}_{new}$:}
+
+For a new observation, the standard error is:
+
+$$
+\text{SE}(Y_{new}-\hat{Y}_{new}) = \hat{\sigma} 
+\sqrt{ 
+1 + \frac{1}{n} + \frac{(x_0-\bar{X})^2}{S_{XX}}
+},
+$$
+Which can be written in terms of the standard error we found previously:
+
+$$
+\text{SE}(Y_{new}-\hat{Y}_{new}) = 
+\sqrt{ 
+\hat{\sigma}^2 + \text{SE}(\hat{Y}(x_0))^2 
+} = \sqrt{3.7056 + 0.3331^2} = 1.954,
+$$
 \end{bluebox}
 
 ## (e) 
