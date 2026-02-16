@@ -1,0 +1,303 @@
+---
+title: "STAT 5605 Homework 3"
+subtitle: "February 19, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+---
+
+# Problem 1
+
+A large, national grocery retailer tracks productivity and costs of its facilities closely. A subset of the data, HW3PR1.txt, was obtained from a single distribution center for a one-year period. The variables included are $X_1=$ the number of cases shiped, $X_2=$ the indirect costs of the total labor hours as a percentage, and $X_3=1$ if the week has a holiday and 0 otherwise. The response variable $Y$ is the total labor hours.
+
+```{r}
+HW3PR1 <- read.table("./HW3PR1.txt", header=TRUE)
+str(HW3PR1)
+nrow(HW3PR1) 
+library(dplyr)
+HW3PR1a <- select(HW3PR1, X1,X2,X3,Y)
+pairs(HW3PR1a)
+plot(HW3PR1$case,HW3PR1$X1)
+PR1 <- lm(formula = Y ~ X1+X2+X3, data=HW3PR1)
+summary(PR1)
+new_x_value <- data.frame(X1 = 400000, X2=7.2, X3=0)
+predicted_value1 <- predict(object = PR1, newdata = new_x_value, interval="confidence")
+print(predicted_value1)
+predicted_value2 <- predict(object = PR1, newdata = new_x_value, interval="prediction")
+print(predicted_value2)
+```
+
+## (a) 
+
+Create a multivariate scatter plot matrix for $X_1$,$X_2$, $X_3$, and $Y$. What information does this plot provide?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b)
+
+The cases in HW3PR1.txt are given in consecutive weeks.  Prepare a time plot for each predictor variable as well as the response variable $Y$. What do these plots show?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+
+## (c) 
+
+Test whether there is a regression relation. State the hypotheses and conclusion. What does your test result imply about regression coefficients (slops) associated with $X_1$, $X_2$, and $X_3$?  What is the p-value of the test?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (d) 
+
+Calculate the coefficient multiple determination $R^2$. How is this measure interpreted here.
+
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (e) 
+
+For the data, HW3PR1.txt, on which the regression fit is based, would you consider a shipment of 400,000 cases with an indirect percentage of 7.2 on a non-holiday week to be within the scope of the model? What about a shipment of 400,000 cases with an indirect percentage of 9.9 on a non-holiday week? Support your answers by preparing or referring to a relevant plot.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (f)  
+
+Assume that multiple regression model for three predictor variables with independent normal error terms is appropriate. A new shipment is to be received with $x_{h1}=292,087$, $x_{h2}=7.77$, and $x_{h3}=0$.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+### (f1) 
+
+Obtain a 95\% confidence interval for the expected total labor hours for this shipment.
+  
+\begin{bluebox}
+a
+\end{bluebox}
+
+### (f2) 
+
+Compute a 95\% prediction interval for the total labor hours for this new shipment.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+# Problem 2
+
+An analyst wanted to fit a regression model $Y_i=\beta_0+\beta_1X_{i1} + \beta_{2} X_{i2} + \beta_3 X_{i3} + \epsilon_i$, $i=1,2,\dots,n$, by the method of least squares when it is known that $\beta_2=5$. How can the analyst obtain the desired fit by using a multiple regression computer program? What if it is known that $\beta_3=0$?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+# Problem 3 
+
+Consider the multiple linear regression model:   $Y_i=\beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \beta_3 X_{i1} X_{i2} + \epsilon_i$, where $\epsilon_i \sim N(0,\sigma^2)$, $i=1,2,\dots,n$. Which of the following statements would be correct?  Provide a necessary explanation.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (a)  
+
+The number of predictors is 2.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b)  
+
+The number of regressors is 3.
+  
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c)  
+
+The number of model parameters is 3.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (d)  
+
+The number of model parameters is 4.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (e)  
+
+The number of model parameters is 5.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (f)  
+
+The number of model parameters is $\infty$.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (g)  
+
+None of the above.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+
+# Problem 4 
+
+An analysis is performed to study the relationship between three explanatory variables, $X_1$, $X_2$ and $X_3$, and a response variable $Y$.  Consider the following model:
+$$
+Y=\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3+ \epsilon
+$$
+where $\epsilon \sim N(0,\sigma^2)$. The observed data is denoted by
+ $\{(Y_i,X_{1i},X_{2i},X_{3i}),\; i=1,2,\dots,n\}$ and we further assume that
+the $Y_i$'s are independent. We fit the above model to this data set.
+The resulting ANOVA table is given below and  the coefficient of determination is 0.637538.
+
+\begin{center}
+{\bf The  ANOVA Table}
+
+\begin{tabular}{lcrrrr} \hline
+\multicolumn{6}{c}{Analysis of Variance} \\ \hline
+Source  & DF       & Sum of Square  & Mean Square &  F Stat & Prob $>$ F \\ \hline
+Model   & $\ast$   &   $\ast$       &   $\ast$    &  $\ast$ &   $\ast$ \\
+Error   &  117      &  17.90761    &  0.15306    &         &   \\
+C Total & $\ast$   &   $\ast$     &              &         & \\ \hline
+\end{tabular}
+\end{center}
+
+Answer the following questions:
+
+## (i) 
+
+Fill in the missing values (denoted by ``$\ast$'') in the ANOVA table.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (ii) 
+
+State the null and alternative hypotheses ($H_0$ and $H_1$) for the $F$ test in the ANOVA table.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (iii) 
+
+What is an estimated value of $\sigma^2$ based on the results shown in the above ANOVA table?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (iv) 
+
+Under the null hypothesis $H_0$ specified in Part (ii), find the distribution of $R^2$and then compute $P(R^2 \geq 0.637538|H_0)$. What does the value of $P(R^2 \geq 0.637538|H_0)$ imply?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+# Problem 5 
+
+Consider the multiple regression model:
+  $$Y_i=\beta_1 X_{i1}+\beta_{2} X_{i2} + 
+  \epsilon_i, \;\; i=1,2,\dots,n,$$
+ where the $\epsilon_i$ are uncorrelated, with $E[\epsilon_i]=0$ and
+ Var$(\epsilon_i)=\sigma^2$, and $X_{1i}$ and $X_{2i}$ are two covariates.
+ Let $X=\begin{pmatrix}
+   X_{11} & X_{21} & \dots & X_{n1} \\
+   X_{12} & X_{22} & \dots & X_{n2} 
+ \end{pmatrix}'$, which is an $n \times 2$ matrix.
+ Assume that $(X_{1j},X_{2j},\dots,X_{nj})' \ne (1,1,\dots,1)'$ for
+ $j=1,2$  and $X'X$ is of full rank, i.e., $|X'X| \ne 0$.
+
+
+## (a) 
+
+Derive the normal equations using the LS criterion.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b) 
+
+Derive the LS estimators of $\beta_1$ and $\beta_2$. 
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c)  
+
+Let $e_i$ denote the residual and also let $\hat{Y}_i$ denote the fitted value for $i=1,2,\dots, n$.  Which of the following statements are true?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+### (c1)  $\sum^n_{i=1} e_i=0$ always.
+   
+\begin{bluebox}
+a
+\end{bluebox}
+
+### (c2) $\sum^n_{i=1} e_i \hat{Y}_i=0$ always.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+### (c3) $\sum^n_{i=1} e_i X_{ij}=0$ always for $j=1,2$.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+### (c4) $\sum^n_{i=1} e_i {Y}_i=0$ always.
+ 
+\begin{bluebox}
+a
+\end{bluebox}
+
+# Problem 6
+
+In a data set with 2 covariates and 100 observations, the sample variance for the responses is 8.158. When fitting a linear regression on the data, the $F$ statistics for testing the usefullness of the overall model is 41.26, the residual for the first observation is $-2.393$, and its standard error is $\sqrt{4.343}$. Find the standard error of the fitted value for the first observation.
+
+\begin{bluebox}
+a
+\end{bluebox}
