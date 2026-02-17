@@ -287,6 +287,11 @@ Answer the following questions:
 
 Fill in the missing values (denoted by ``$\ast$'') in the ANOVA table.
 
+```{r}
+prob4_1_quantity <- pf(65.72, 3, 117, lower.tail = FALSE)
+print(prob4_1_quantity)
+```
+
 \begin{bluebox}
 In this problem, we are given a small amount of information, but we should be able to work backwards to get all of the quantities we need to fill our table.
 
@@ -311,7 +316,7 @@ Moving on, we know in MLR that the degrees of freedom for the error term is $n-p
 
 To find the relevant mean square error for the regression model, we simply need to divide the SSR by its corresponding degrees of freedom, $\frac{30.17142}{3} = 10.05714.$
 
-Finally, we can round out our table by finding the F Statistic and its corresponding p-value by first identifying the F Statistic's value, $F = \frac{MSR}{MSE} = \frac{10.05714}{0.15306} \approx 65.70717 $. This means that we can find the p-value through calculating the probability $P(F_{3,117} > 65.72)$. This probability will be extremely close to zero. Comfortably we can claim that the p-value would end up being $\ll 0.01$.
+Finally, we can round out our table by finding the F Statistic and its corresponding p-value by first identifying the F Statistic's value, $F = \frac{MSR}{MSE} = \frac{10.05714}{0.15306} \approx 65.70717 $. This means that we can find the p-value through calculating the probability $P(F_{3,117} > 65.72)$. This probability will be extremely close to zero. Comfortably we can claim that the p-value would end up being $\ll 0.0001$.
 
 So, our completed table is:
 
@@ -321,7 +326,7 @@ So, our completed table is:
 \begin{tabular}{lcrrrr} \hline
 \multicolumn{6}{c}{Analysis of Variance} \\ \hline
 Source  & DF       & Sum of Square  & Mean Square &  F Stat & Prob $>$ F \\ \hline
-Model   & 3   &   30.17142       &   10.05714    &  65.72 &   $\ll 0.01$\\
+Model   & 3   &   30.17142       &   10.05714    &  65.72 &   $\ll 0.0001$\\
 Error   &  117      &  17.90761    &  0.15306    &         &   \\
 C Total & 120   &   48.07903     &              &         & \\ \hline
 \end{tabular}
@@ -359,23 +364,39 @@ The value of $\sigma^2$ can be estimated by $\hat{\sigma^2} = MSE = 0.15306$.
 
 Under the null hypothesis $H_0$ specified in Part (ii), find the distribution of $R^2$ and then compute $P(R^2 \geq 0.637538|H_0)$. What does the value of $P(R^2 \geq 0.637538|H_0)$ imply?
 
+```{r}
+prob4_4_quantity <- pbeta(0.637538, (3/2), (117/2), lower.tail = FALSE)
+print(prob4_4_quantity)
+```
+
 \begin{bluebox}
 
-Under the null hypothesis, our model would reduce to $Y = \beta_0 + \epsilon_i$. In multiple linear regression, under the null hypothesis the coefficient of determination is Beta-distributed. 
+Under the null hypothesis, our model would reduce to $Y = \beta_0 + \epsilon_i$. In multiple linear regression, under the null hypothesis the coefficient of determination is Beta-distributed with parameters that are equal to half of the degrees of freedom associated with the model and error. So, under the null hypothesis for this problem, $R^2 \sim \text{Beta} \left(\frac{3}{2}, \frac{117}{2}\right) $.
+
+Now since we have a defined distribution for $R^2$ under the null hypothesis, we can compute the probability that $R^2$ exceeds $0.637538$ under the null hypothesis. We can generate this particular value using R, which turns out to be incredibly small. This extremely low probability indicates that it is incredibly improbable to observe a value of $R^2 \ge 0.637538$ given that the true model is $Y = \beta_0 + \epsilon_i$.
 
 \end{bluebox}
+
+\newpage
 
 # Problem 5 
 
 Consider the multiple regression model:
-  $$Y_i=\beta_1 X_{i1}+\beta_{2} X_{i2} + 
-  \epsilon_i, \;\; i=1,2,\dots,n,$$
+  $$
+  Y_i=\beta_1 X_{i1}+\beta_{2} X_{i2} + 
+  \epsilon_i, \;\; i=1,2,\dots,n,
+  $$
  where the $\epsilon_i$ are uncorrelated, with $E[\epsilon_i]=0$ and
  Var$(\epsilon_i)=\sigma^2$, and $X_{1i}$ and $X_{2i}$ are two covariates.
- Let $X=\begin{pmatrix}
+ Let 
+ 
+ $$
+ X=\begin{pmatrix}
    X_{11} & X_{21} & \dots & X_{n1} \\
    X_{12} & X_{22} & \dots & X_{n2} 
- \end{pmatrix}'$, which is an $n \times 2$ matrix.
+ \end{pmatrix}',
+ $$
+ which is an $n \times 2$ matrix.
  Assume that $(X_{1j},X_{2j},\dots,X_{nj})' \ne (1,1,\dots,1)'$ for
  $j=1,2$  and $X'X$ is of full rank, i.e., $|X'X| \ne 0$.
 
@@ -385,48 +406,137 @@ Consider the multiple regression model:
 Derive the normal equations using the LS criterion.
 
 \begin{bluebox}
-a
+
+Using the LS criterion means minimizing the score function
+
+$$
+S(\bm{\beta}) = \sum^{n}_{i=1}(Y_i - \beta_1X_{i1}- \beta_2X_{i2})^2 = (\mathbf{Y - X}\bm{\beta})'(\mathbf{Y - X}\bm{\beta})
+$$
+To get the normal equations, we can differentiate this function w.r.t. $\bm{\beta}$ and subsequently set the derivative equal to $0$:
+
+$$
+\frac{\partial S}{\partial \bm{\beta}} = -2 \bm{X}' \bm{Y} + 2\bm{X}'\bm{X}\bm{\beta} \implies \bm{X}'\bm{X}\bm{\beta} = \bm{X}'\bm{Y}
+$$
 \end{bluebox}
 
+\newpage
 ## (b) 
 
 Derive the LS estimators of $\beta_1$ and $\beta_2$. 
 
 \begin{bluebox}
-a
+The LS estimators of $\beta_1$ and $\beta_2$ are the selections of the elements of $\bm{\beta}$ that solve the normal equations and are $\hat{\bm{\beta}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}$. 
+
+The Gram matrix $\bm{X}'\bm{X}$ is a matrix in $\mathbb{R}^{2\times2}$ which we can calculate to be:
+
+$$
+\begin{pmatrix}
+   X_{11} & X_{21} & \dots & X_{n1} \\
+   X_{12} & X_{22} & \dots & X_{n2} 
+ \end{pmatrix} 
+ \begin{pmatrix}
+   X_{11} & X_{12} \\
+   X_{21} & X_{22} \\
+   \vdots & \vdots \\
+   X_{n1} & X_{n2}
+ \end{pmatrix}
+ = 
+\begin{pmatrix}
+\sum^n_{i=1} X_{i1}^2 & \sum^n_{i=1} X_{i1}X_{i2}\\
+\sum^n_{i=1}X_{i1}X_{i2} & \sum^n_{i=1} X_{i2}^2
+\end{pmatrix}
+$$
+The inverse of this matrix can be expressed by first finding the determinant, $|\bm{X}'\bm{X}| = (\sum^n_{i=1} X_{i1}^2)(\sum^n_{i=1} X_{i2}^2) - \left(\sum^n_{i=1} X_{i1}X_{i2} \right)^2$, and then expressing the matrix as:
+
+$$
+\frac{1}{(\sum^n_{i=1} X_{i1}^2)(\sum^n_{i=1} X_{i2}^2) - \left(\sum^n_{i=1} X_{i1}X_{i2} \right)^2} 
+\begin{pmatrix}
+\sum^n_{i=1} X_{i2}^2 & -\sum^n_{i=1} X_{i1}X_{i2}\\
+-\sum^n_{i=1}X_{i1}X_{i2} & \sum^n_{i=1} X_{i1}^2
+\end{pmatrix}
+$$
+
+This inverse Gram matrix is then multiplied by:
+
+$$
+\bm{X}'\bm{Y} = 
+\begin{pmatrix}
+   X_{11} & X_{21} & \dots & X_{n1} \\
+   X_{12} & X_{22} & \dots & X_{n2} 
+ \end{pmatrix} 
+\begin{pmatrix}
+Y_1 \\
+Y_2 \\
+\vdots\\ 
+Y_n
+\end{pmatrix} =
+\begin{pmatrix}
+\sum^n_{i=1} Y_iX_{i1} \\
+\sum^n_{i=1} Y_iX_{i2}
+\end{pmatrix}
+$$
+
+So, together, our expression for the LS estimators of $\beta_1$ and $\beta_2$ is:
+
+$$
+\hat{\bm{\beta}} = \frac{1}{(\sum^n_{i=1} X_{i1}^2)(\sum^n_{i=1} X_{i2}^2) - \left(\sum^n_{i=1} X_{i1}X_{i2} \right)^2} 
+\begin{pmatrix}
+\sum^n_{i=1} X_{i2}^2 & -\sum^n_{i=1} X_{i1}X_{i2}\\
+-\sum^n_{i=1}X_{i1}X_{i2} & \sum^n_{i=1} X_{i1}^2
+\end{pmatrix}
+\begin{pmatrix}
+\sum^n_{i=1} Y_iX_{i1} \\
+\sum^n_{i=1} Y_iX_{i2}
+\end{pmatrix} = 
+$$
+
+$$
+= \frac{1}{(\sum^n_{i=1} X_{i1}^2)(\sum^n_{i=1} X_{i2}^2) - \left(\sum^n_{i=1} X_{i1}X_{i2} \right)^2}
+\begin{pmatrix}
+  \sum^n_{i=1} X_{i2}^2 \sum^n_{i=1} Y_iX_{i1} - \sum^n_{i=1}X_{i1}X_{i2}\sum^n_{i=1} Y_iX_{i2} \\
+  -\sum^n_{i=1}X_{i1}X_{i2}\sum^n_{i=1} Y_iX_{i1} + \sum^n_{i=1} X_{i1}^2\sum^n_{i=1} Y_iX_{i2}
+\end{pmatrix}
+$$
+
+$$
+\therefore \hat{\bm{\beta}} = \begin{pmatrix}
+  \frac{\sum^n_{i=1} X_{i2}^2 \sum^n_{i=1} Y_iX_{i1} - \sum^n_{i=1}X_{i1}X_{i2}\sum^n_{i=1} Y_iX_{i2}}{(\sum^n_{i=1} X_{i1}^2)(\sum^n_{i=1} X_{i2}^2) - \left(\sum^n_{i=1} X_{i1}X_{i2} \right)^2} \\
+  \frac{-\sum^n_{i=1}X_{i1}X_{i2}\sum^n_{i=1} Y_iX_{i1} + \sum^n_{i=1} X_{i1}^2\sum^n_{i=1} Y_iX_{i2}}{(\sum^n_{i=1} X_{i1}^2)(\sum^n_{i=1} X_{i2}^2) - \left(\sum^n_{i=1} X_{i1}X_{i2} \right)^2}
+\end{pmatrix}
+$$
+
 \end{bluebox}
 
+\newpage
 ## (c)  
 
 Let $e_i$ denote the residual and also let $\hat{Y}_i$ denote the fitted value for $i=1,2,\dots, n$.  Which of the following statements are true?
 
-\begin{bluebox}
-a
-\end{bluebox}
-
 ### (c1) $\sum^n_{i=1} e_i=0$ always.
    
 \begin{bluebox}
-a
+\textbf{FALSE}: This is true in SLR and MLR cases when an intercept is included, because a normal equation would give $\sum e_i = 0$, but for our particular intercept-free model, this constraint is not forced by our normal equations.
 \end{bluebox}
 
 ### (c2) $\sum^n_{i=1} e_i \hat{Y}_i=0$ always.
 
 \begin{bluebox}
-a
+\textbf{TRUE}: Under the least squares method, residuals are always orthogonal to fitted values. Least squares gives us $\hat{\bm{Y}} = \bm{X}\hat{\bm{\beta}}$ and so $\bm{e}'\hat{\bm{Y}} = \bm{e}'\bm{X}\hat{\bm{\beta}} = (\bm{X}'\bm{e})'\hat{\bm{\beta}} = 0 $ because $(\bm{X}'\bm{e} = 0) due to the normal equations dictating orthogonality of the predictors and residuals. 
 \end{bluebox}
 
 ### (c3) $\sum^n_{i=1} e_i X_{ij}=0$ always for $j=1,2$.
 
 \begin{bluebox}
-a
+\textbf{TRUE}: This is true, and is how we proved the prior statement was true. For SLR and MLR regression models using predictors $X_{.j}$, each predictor will generate a normal equation where $\sum^n_{i=1} e_i X_{ij}=0$.
 \end{bluebox}
 
 ### (c4) $\sum^n_{i=1} e_i {Y}_i=0$ always.
  
 \begin{bluebox}
-a
+\textbf{FALSE}: We know that we can represent the true $\bm{Y}$ values as $\bm{Y} = \hat{\bm{Y}} + \bm{e}$, and pre-multiplying by $\bm{e}$ we get $\bm{e}'\bm{Y} = \bm{e}'\hat{\bm{Y}} + \bm{e}'\bm{e}$. In part c2, we showed that $\bm{e}'\hat{\bm{Y}} = 0$. Following that realization we get $\bm{e}'\bm{Y} = \sum e^2_i$. This is only zero if all residuals are 0, which does not happen always (or nearly ever in practice). Therefore, the statement is false.
 \end{bluebox}
+
+\newpage 
 
 # Problem 6
 
