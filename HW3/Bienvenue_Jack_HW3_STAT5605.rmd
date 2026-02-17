@@ -14,30 +14,39 @@ header-includes:
 fontsize: 12pt
 ---
 
+```{r, echo=FALSE}
+invisible(lapply(c("ggplot2", "dplyr", "tidyr"), 
+  function(pkg) suppressPackageStartupMessages(library(pkg, 
+                                                character.only = TRUE))))
+```
+
 # Problem 1
 
-A large, national grocery retailer tracks productivity and costs of its facilities closely. A subset of the data, HW3PR1.txt, was obtained from a single distribution center for a one-year period. The variables included are $X_1=$ the number of cases shiped, $X_2=$ the indirect costs of the total labor hours as a percentage, and $X_3=1$ if the week has a holiday and 0 otherwise. The response variable $Y$ is the total labor hours.
+A large, national grocery retailer tracks productivity and costs of its facilities closely. A subset of the data, HW3PR1.txt, was obtained from a single distribution center for a one-year period. The variables included are $X_1=$ the number of cases shipped, $X_2=$ the indirect costs of the total labor hours as a percentage, and $X_3=1$ if the week has a holiday and 0 otherwise. The response variable $Y$ is the total labor hours.
 
 ```{r}
 HW3PR1 <- read.table("./HW3PR1.txt", header=TRUE)
 str(HW3PR1)
-nrow(HW3PR1) 
-library(dplyr)
-HW3PR1a <- select(HW3PR1, X1,X2,X3,Y)
-pairs(HW3PR1a)
-plot(HW3PR1$case,HW3PR1$X1)
+nrow(HW3PR1)
 PR1 <- lm(formula = Y ~ X1+X2+X3, data=HW3PR1)
 summary(PR1)
 new_x_value <- data.frame(X1 = 400000, X2=7.2, X3=0)
-predicted_value1 <- predict(object = PR1, newdata = new_x_value, interval="confidence")
+predicted_value1 <- predict(object = PR1, newdata = new_x_value, 
+                            interval="confidence")
 print(predicted_value1)
-predicted_value2 <- predict(object = PR1, newdata = new_x_value, interval="prediction")
+predicted_value2 <- predict(object = PR1, newdata = new_x_value, 
+                            interval="prediction")
 print(predicted_value2)
 ```
 
 ## (a) 
 
 Create a multivariate scatter plot matrix for $X_1$,$X_2$, $X_3$, and $Y$. What information does this plot provide?
+
+```{r}
+HW3PR1a <- select(HW3PR1, X1,X2,X3,Y)
+pairs(HW3PR1a)
+```
 
 \begin{bluebox}
 a
@@ -47,23 +56,95 @@ a
 
 The cases in HW3PR1.txt are given in consecutive weeks.  Prepare a time plot for each predictor variable as well as the response variable $Y$. What do these plots show?
 
+```{r}
+# Data prep for nice time series plot:
+HW3PR1_long <- HW3PR1 %>% mutate(Week = case) %>%
+  select(Week, Y, X1, X2, X3) %>%
+  pivot_longer( cols = c(Y, X1, X2, X3),
+                 names_to = "Variable",
+                   values_to = "Value") 
+HW3PR1_long$Variable <- recode(HW3PR1_long$Variable,
+  Y  = "Total Labor Hours (Y)",
+  X1 = "Cases Shipped (X1)",
+  X2 = "Indirect Labor % (X2)",
+  X3 = "Holiday Indicator (X3)"
+)
+
+# 2x2 Scatterplot of the time series for the variables:
+ggplot(HW3PR1_long, aes(x = Week, y = Value)) +
+  geom_point(alpha = 0.6, color = "gray40") +
+  geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cs"),  # cubic spline fit 
+    se = TRUE,
+    color = "#376199",
+    linewidth = 1
+  ) +
+  
+  facet_wrap(~ Variable, ncol = 2, scales = "free_y") +
+  
+  labs(
+    title = "Weekly Time Series for Grocery Store Data Variables",
+    x = "Week",
+    y = "Value",
+    caption = "Cubic Spline Fit Used for Time Series | Jack Bienvenue 2026"
+  ) +
+  
+  theme_minimal(base_size = 13) +
+  theme(
+  plot.title = element_text(
+    face = "bold",
+    hjust = 0.5),
+  axis.title = element_text(
+    face = "bold"),
+  plot.caption = element_text(
+    color = "gray60"))
+```
+
 \begin{bluebox}
-a
+In this part of the problem, we would like to assess whether there is clear seasonality in the trends of any of the predictors or the response variable. We should realize that, if we were to create predictive models or make inferences based upon this data, that inferences or predictions may be inaccurate because of time-dependence issues. 
+
+These plots provide several insights into how time dependence plays a role in this data. For the top-left plot, we observe a potentially meaningful time series signal of cases shipped increasing on average towards the end of the year, potentially associated with the holiday season assuming that Week 0 indicates the beginning of the calendar year. Following this assumption, we see shipments gradually decrease on average as the winter and spring progress, bottoming in the summer and increasing again on average as the fall progresses. 
+
+The signal for indirect labor percentages is less clear, but suggests that the percentage may gradually increase on average as the year progresses.
+
+The holiday indicator's plot is not helpful in its own right, but provides clarity on where the holidays occur during the year. We can observe that $12\%$ of the weeks in the year are considered holidays.
+
+When reviewing the outcome variable, we can see that the total labor hours are on average relatively stagnant throughout the year, not exhibiting obvious seasonality. However, in combination with the holiday indicator plot, we can observe that in this data set, the highest total labor hours week coincide with the holiday weeks. 
+
+We should note when reviewing these time series plots that we are observing the time series over a single year and that the trends we observe over a single year may not be fully representative of the true time series for these variables. 
 \end{bluebox}
 
 
 ## (c) 
 
-Test whether there is a regression relation. State the hypotheses and conclusion. What does your test result imply about regression coefficients (slops) associated with $X_1$, $X_2$, and $X_3$?  What is the p-value of the test?
+Test whether there is a regression relation. State the hypotheses and conclusion. What does your test result imply about regression coefficients (slopes) associated with $X_1$, $X_2$, and $X_3$?  What is the p-value of the test?
+
+```{r}
+
+```
 
 \begin{bluebox}
+Before performing our test, let's set the hypotheses for our testing:
+
+$$
 a
+$$
+
+$$
+a
+$$
+
+Our regression output provides...
 \end{bluebox}
 
 ## (d) 
 
 Calculate the coefficient multiple determination $R^2$. How is this measure interpreted here.
 
+```{r}
+
+```
 
 \begin{bluebox}
 a
@@ -106,23 +187,24 @@ a
 An analyst wanted to fit a regression model $Y_i=\beta_0+\beta_1X_{i1} + \beta_{2} X_{i2} + \beta_3 X_{i3} + \epsilon_i$, $i=1,2,\dots,n$, by the method of least squares when it is known that $\beta_2=5$. How can the analyst obtain the desired fit by using a multiple regression computer program? What if it is known that $\beta_3=0$?
 
 \begin{bluebox}
-a
+To generate a least squares fit for MLR where one coefficient (e.g., $\beta_2 = 0$) is already known, ...
+
+To generate a least squares fit for 3-predictor MLR where two population coefficients (e.g., $\beta_2, \beta_3$) are known, we can HOW DO YOU DO THAT???????
+
 \end{bluebox}
 
 # Problem 3 
 
 Consider the multiple linear regression model:   $Y_i=\beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \beta_3 X_{i1} X_{i2} + \epsilon_i$, where $\epsilon_i \sim N(0,\sigma^2)$, $i=1,2,\dots,n$. Which of the following statements would be correct?  Provide a necessary explanation.
 
-\begin{bluebox}
-a
-\end{bluebox}
-
 ## (a)  
 
 The number of predictors is 2.
 
 \begin{bluebox}
-a
+\textbf{INCORRECT*} - We have three predictors that we are using for our model: $X_{i1}$,$X_{i2}$, and $X_{i1}X_{i2}$.
+
+However, if we are considering predictors to be unique features, we have two unique features here: $X_1$ and $X_2$. We also have an interaction term $X_1X_2$ formed from $X_1$ and $X_2$. Under this circumstance, we could claim that this statement is true.
 \end{bluebox}
 
 ## (b)  
@@ -130,7 +212,9 @@ a
 The number of regressors is 3.
   
 \begin{bluebox}
-a
+\textbf{INCORRECT*} - We are using four regressors here, $1, X_{i1}, X_{i2}, \text{ and } X_{i1}X_{i2}$, multiplied by $\beta_0, \beta_1, \beta_2, \beta_3$, respectively. 
+
+If we do not consider the intercept term to be a regressor, then we could say we have three distinct regressors for $Y$: $\beta_1X_{i1}$, $\beta_2 X_{i2}$, $\beta_3 X_{i1}X_{i2}$.
 \end{bluebox}
 
 ## (c)  
@@ -138,7 +222,7 @@ a
 The number of model parameters is 3.
 
 \begin{bluebox}
-a
+\textbf{INCORRECT} - We have five distinct parameters for our model: $\beta_0, \beta_1, \beta_2, \beta_3, \sigma^2$.
 \end{bluebox}
 
 ## (d)  
@@ -146,7 +230,7 @@ a
 The number of model parameters is 4.
 
 \begin{bluebox}
-a
+\textbf{INCORRECT} - We have five distinct parameters for our model: $\beta_0, \beta_1, \beta_2, \beta_3, \sigma^2$.
 \end{bluebox}
 
 ## (e)  
@@ -154,7 +238,7 @@ a
 The number of model parameters is 5.
 
 \begin{bluebox}
-a
+\textbf{CORRECT} - the model parameters are $\beta_0, \beta_1, \beta_2, \beta_3$ and the variance of the error term, $\sigma^2$. This makes for a total of $5$ parameters in the model. 
 \end{bluebox}
 
 ## (f)  
@@ -162,7 +246,7 @@ a
 The number of model parameters is $\infty$.
 
 \begin{bluebox}
-a
+\textbf{INCORRECT} - our model has closed form $Y_i=\beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \beta_3 X_{i1} X_{i2} + \epsilon_i$, where $\epsilon_i \sim N(0,\sigma^2)$, $i=1,2,\dots,n$ with $5$ uniquely identifiable parameters as we observed for the previous statement. The number of model parameters therefore is finite and equal to $5$, the number of model parameters is not $\infty$.
 \end{bluebox}
 
 ## (g)  
@@ -170,7 +254,7 @@ a
 None of the above.
 
 \begin{bluebox}
-a
+\textbf{INCORRECT} - We found at least \textbf{part e} to be true.
 \end{bluebox}
 
 
@@ -204,7 +288,44 @@ Answer the following questions:
 Fill in the missing values (denoted by ``$\ast$'') in the ANOVA table.
 
 \begin{bluebox}
-a
+In this problem, we are given a small amount of information, but we should be able to work backwards to get all of the quantities we need to fill our table.
+
+Besides the information about the error degrees of freedom, associated SS, and MS, we know that the coefficient of determination $R^2 = 0.627538 = \frac{SSR}{SSTO} = 1 - \frac{SSE}{SSTO}.$ Right away, we can actually find $SSTO$ and $SSR$:
+
+$$
+\frac{SSE}{SSTO} = 1 - 0.627538,
+$$
+Leading to:
+
+$$
+\frac{17.90761}{SSTO} = 0.372462 \implies SSTO = \frac{17.90761}{0.372462} \approx 48.07903.
+$$
+
+Therefore our $SSR$ is:
+
+$$
+SSR = 0.627538 \times 48.07903 \approx 30.17142.
+$$
+
+Moving on, we know in MLR that the degrees of freedom for the error term is $n-p$, with $p$ representing the number of parameters to be estimated. Here, we have four parameters to be estimated, so using our given error degrees of freedom $117$, we can find that our sample size is $n=121$. To find the model and total degrees of freedom, we recognize that the MLR model degrees of freedom is equal to the number of predictors, $3$, and the corrected total degrees of freedom is equal to $n-1$, so here the corrected total degrees of freedom would be $120$.
+
+To find the relevant mean square error for the regression model, we simply need to divide the SSR by its corresponding degrees of freedom, $\frac{30.17142}{3} = 10.05714.$
+
+Finally, we can round out our table by finding the F Statistic and its corresponding p-value by first identifying the F Statistic's value, $F = \frac{MSR}{MSE} = \frac{10.05714}{0.15306} \approx 65.70717 $. This means that we can find the p-value through calculating the probability $P(F_{3,117} > 65.72)$. This probability will be extremely close to zero. Comfortably we can claim that the p-value would end up being $\ll 0.01$.
+
+So, our completed table is:
+
+\begin{center}
+{\bf The  ANOVA Table}
+
+\begin{tabular}{lcrrrr} \hline
+\multicolumn{6}{c}{Analysis of Variance} \\ \hline
+Source  & DF       & Sum of Square  & Mean Square &  F Stat & Prob $>$ F \\ \hline
+Model   & 3   &   30.17142       &   10.05714    &  65.72 &   $\ll 0.01$\\
+Error   &  117      &  17.90761    &  0.15306    &         &   \\
+C Total & 120   &   48.07903     &              &         & \\ \hline
+\end{tabular}
+\end{center}
 \end{bluebox}
 
 ## (ii) 
@@ -212,7 +333,18 @@ a
 State the null and alternative hypotheses ($H_0$ and $H_1$) for the $F$ test in the ANOVA table.
 
 \begin{bluebox}
-a
+For the type of F test employed by our table setup, we are testing whether the linear regression model overall explains any variation in Y. Therefore we are testing the hypothesis:
+
+$$
+H_0: \beta_1 = \beta_2 = \beta_3 = 0, \text{ against}
+$$
+
+$$
+H_A: \text{ At least one of } \beta_1, \beta_2, \beta_3 \neq 0
+$$
+
+We found that there was a linear association between at least one of the coefficient-covariate pairs and the response variable using our F-test. 
+
 \end{bluebox}
 
 ## (iii) 
@@ -220,15 +352,17 @@ a
 What is an estimated value of $\sigma^2$ based on the results shown in the above ANOVA table?
 
 \begin{bluebox}
-a
+The value of $\sigma^2$ can be estimated by $\hat{\sigma^2} = MSE = 0.15306$. 
 \end{bluebox}
 
 ## (iv) 
 
-Under the null hypothesis $H_0$ specified in Part (ii), find the distribution of $R^2$and then compute $P(R^2 \geq 0.637538|H_0)$. What does the value of $P(R^2 \geq 0.637538|H_0)$ imply?
+Under the null hypothesis $H_0$ specified in Part (ii), find the distribution of $R^2$ and then compute $P(R^2 \geq 0.637538|H_0)$. What does the value of $P(R^2 \geq 0.637538|H_0)$ imply?
 
 \begin{bluebox}
-a
+
+Under the null hypothesis, our model would reduce to $Y = \beta_0 + \epsilon_i$. In multiple linear regression, under the null hypothesis the coefficient of determination is Beta-distributed. 
+
 \end{bluebox}
 
 # Problem 5 
@@ -270,7 +404,7 @@ Let $e_i$ denote the residual and also let $\hat{Y}_i$ denote the fitted value f
 a
 \end{bluebox}
 
-### (c1)  $\sum^n_{i=1} e_i=0$ always.
+### (c1) $\sum^n_{i=1} e_i=0$ always.
    
 \begin{bluebox}
 a
@@ -296,7 +430,7 @@ a
 
 # Problem 6
 
-In a data set with 2 covariates and 100 observations, the sample variance for the responses is 8.158. When fitting a linear regression on the data, the $F$ statistics for testing the usefullness of the overall model is 41.26, the residual for the first observation is $-2.393$, and its standard error is $\sqrt{4.343}$. Find the standard error of the fitted value for the first observation.
+In a data set with 2 covariates and 100 observations, the sample variance for the responses is 8.158. When fitting a linear regression on the data, the $F$ statistics for testing the usefulness of the overall model is 41.26, the residual for the first observation is $-2.393$, and its standard error is $\sqrt{4.343}$. Find the standard error of the fitted value for the first observation.
 
 \begin{bluebox}
 a
