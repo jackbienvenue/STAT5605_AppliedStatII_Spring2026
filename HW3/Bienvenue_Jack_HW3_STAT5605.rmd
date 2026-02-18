@@ -49,7 +49,11 @@ pairs(HW3PR1a)
 ```
 
 \begin{bluebox}
-a
+The scatter plot matrix given by this problem allows us to see scatter plots for each possible pair combination of covariates and the response variable. These scatterplots are useful to gauge whether we may have a linear association between variables. This helps in three ways: first, we can observe whether or not it seems apparent that there is a linear association between a covariate and response (which helps us determine whether regression on a variable may explain some variation in $Y$), second we can observe whether we may have a reason to believe that there is collinearity in our covariates, and third, we can assess the direction of the linear association if there appears to be an association. Further, the scatterplot matrix can help us view the structure of the data for each variable, as we may be interested in the range of the data or whether the data has factor levels. 
+
+This particular scatterplot matrix has some interesting information. A clear linear association does not appear to exist between $X_1$ and $X_2$. The coincidence of the binary variable $X_3$ does not show clear clustering of $X_3$ in relation to values of $X_1$ and $X_2$. 
+
+For relationships with $Y$, we do not see very clear signs of linear association for $X_1$ and $X_2$ with $Y$. We do see a clear grouping of the holidays in $X_3$ related to $Y$: it appears that all the holidays have higher associated values of $Y$. We can determine whether or not linear associations exist for $X_1$ and $X_2$ and $Y$ and whether using a dummy variable for $X_3$ helps with explaining variation in $Y$ more formally using hypothesis testing techniques. This graphical method is good for exploring data initially but we may not obtain the full story of the variables' relationships from this scatter plot matrix. 
 \end{bluebox}
 
 ## (b)
@@ -120,78 +124,222 @@ We should note when reviewing these time series plots that we are observing the 
 
 Test whether there is a regression relation. State the hypotheses and conclusion. What does your test result imply about regression coefficients (slopes) associated with $X_1$, $X_2$, and $X_3$?  What is the p-value of the test?
 
-```{r}
-
-```
-
 \begin{bluebox}
 Before performing our test, let's set the hypotheses for our testing:
 
 $$
-a
+H_0: \beta_1 = \beta_2 = \beta_2 = 0, \text{ versus}
 $$
 
 $$
-a
+H_A: \text{At least one of } \beta_1, \beta_2, \beta_3 \neq 0.
 $$
 
-Our regression output provides...
+We select this particular pair of hypotheses because we testing simply for whether a regression relation exists in our linear model, regardless of whether every single regressor exhibits a regression relation with the outcome variable. Furthermore, we will decide to use an $\alpha = 0.05$ significance level for our test.
+
+Our regression output provides information for this test automatically, with a p-value of $4.907\times 10^{-12}$, far below the designated threshold. Therefore, we will reject the null hypothesis which stated that none of the regression coefficients ${\beta_1, \beta_2, \beta_3}$ were nonzero. We have reason to believe that the model overall has a linear regression relationship with the outcome variable. In essence, an MLR model based upon the number of cases shipped, the indirect costs of total labor hours (\%) and holiday indicator helps to explain some of the variation in total labor hours at the supermarket.
 \end{bluebox}
 
 ## (d) 
 
 Calculate the coefficient multiple determination $R^2$. How is this measure interpreted here.
 
-```{r}
-
-```
-
 \begin{bluebox}
-a
+The multiple $R^2$ is included in our regression output and is equal to $0.6985$. This means that the linear relationship between $Y$ and $X_1, X_2$, and $X_3$ explains about $69.85\%$ of the variability in $Y$, the total labor hours in a week at the grocery store.
 \end{bluebox}
 
 ## (e) 
 
 For the data, HW3PR1.txt, on which the regression fit is based, would you consider a shipment of 400,000 cases with an indirect percentage of 7.2 on a non-holiday week to be within the scope of the model? What about a shipment of 400,000 cases with an indirect percentage of 9.9 on a non-holiday week? Support your answers by preparing or referring to a relevant plot.
 
+```{r}
+# Check sample range of data
+
+## X_1
+summary(HW3PR1$X1)
+
+## X_2
+summary(HW3PR1$X2)
+
+## Y
+summary(HW3PR1$Y)
+```
+
+
+``` {r, echo=FALSE, fig.width = 8, fig.height = 8}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Build ordered range dataframe
+range_df <- HW3PR1 %>%
+  summarise(
+    X1_min = min(X1), X1_max = max(X1),
+    X2_min = min(X2), X2_max = max(X2),
+    X3_min = min(X3), X3_max = max(X3)
+  ) %>%
+  pivot_longer(everything(),
+               names_to = c("variable", ".value"),
+               names_pattern = "(X[123])_(min|max)") %>%
+  mutate(
+    variable = factor(variable,
+                      levels = c("X1", "X2", "X3"),
+                      labels = c("Cases Shipped (X1)",
+                                 "Indirect Costs Ttl. Lbr., % (X2)",
+                                 "Holiday Indicator (X3)"))
+  )
+
+# Proposed observations
+new_points <- data.frame(
+  variable = factor(rep(c("Cases Shipped (X1)",
+                          "Indirect Costs Ttl. Lbr., % (X2)",
+                          "Holiday Indicator (X3)"), 2),
+                    levels = levels(range_df$variable)),
+  value = c(400000, 7.2, 0,
+            400000, 9.9, 0),
+  obs = rep(c("(400000, 7.2, 0)",
+              "(400000, 9.9, 0)"), each = 3)
+)
+
+ggplot() +
+  
+  # Thin sample range lines (all predictors)
+  geom_segment(data = range_df,
+               aes(x = min, xend = max,
+                   y = 0, yend = 0),
+               linewidth = 1,
+               color = "grey30",
+               alpha = 0.7) +
+  
+  # Proposed observation points
+  geom_point(data = new_points,
+             aes(x = value, y = 0, color = obs),
+             size = 4,
+             alpha = 0.7) +
+  
+  facet_wrap(~ variable,
+             ncol = 1,
+             scales = "free_x") +
+  
+  labs(title = "New Observation X Values vs Sample Ranges",
+       x = "Value",
+       y = NULL,
+       color = NULL) +
+  
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(size = 14, face = "bold"),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    panel.spacing = unit(1.5, "lines")
+  )
+```
+
 \begin{bluebox}
-a
+Let's review the sample range of the variables from which we built our regression model.
+
+\textbf{SAMPLE RANGES:}
+
+\begin{enumerate}
+  \item $X_1$: $[211944, 472476]$ (\# Cases Shipped),
+  \item $X_2$: $[4.610, 9.650]$ (Indirect Labor $\%$),
+  \item $X_3$: $\\{0,1\\}$ (Holiday Indicator $1=\text{Holiday}$),
+  \item $Y$: $[3998, 5045]$ (Total Labor Hours)
+\end{enumerate}
+
+So, for an observation $\begin{pmatrix} 400000 \\ 7.2 \\ 0 \\ Y_j\end{pmatrix}$, every $X_i, i=1,2,3$ element is within the range of data used to generate our least squares fit. Therefore, we can consider this observation to be within the scope of the model.
+
+For an observation $\begin{pmatrix} 400000 \\ 9.9 \\ 0 \\ Y_{j'}\end{pmatrix}$, the value of $X_2$ exceeds the range of the data used to construct the model, and therefore the observation is outside the scope of the model.
+
+In the figure above, we can see where the two observations' feature values lay in relation to the range of data used to construct the model. 
+
 \end{bluebox}
 
 ## (f)  
 
 Assume that multiple regression model for three predictor variables with independent normal error terms is appropriate. A new shipment is to be received with $x_{h1}=292,087$, $x_{h2}=7.77$, and $x_{h3}=0$.
 
-\begin{bluebox}
-a
-\end{bluebox}
-
 ### (f1) 
 
 Obtain a 95\% confidence interval for the expected total labor hours for this shipment.
+
+```{r}
+# Find relevant t critical value for computing intervals:
+t_0.975_46 <- qt(0.975, 46)
+cat("Critical t:", t_0.975_46)
+print('')
+
+# Verify fitted value using model: 
+new_obs <- data.frame(X1 = 292087, X2 = 7.77, X3 = 0)
+predict(PR1, new_obs, interval = "confidence", level = 0.95)
+```
   
 \begin{bluebox}
-a
+
+We can start by building a $95\%$ confidence interval for the expected total labor hours for this shipment using the construction:
+
+$$
+95\% \text{ Conf. Int.} = \hat{Y_h} \pm t_{0.975, n-4}\times \text{SE}(\hat{Y_h}) = \hat{Y_h} \pm t_{0.975, n-4}\times  \sqrt{\hat{\sigma^2}\bm{x}_h' (\bm{X}'\bm{X})^{-1}\bm{x_h}},
+$$
+
+which is equal to $ (4230.776 , 4328.539)$.
+
+To calculate our confidence interval bounds, we must obtain the fitted value $\hat{Y_h} = \bm{x}_h'\hat{\bm{\beta}}$. Using our fitted models and known value for the observed $X_{ih}, i-1,2,3$, we can calculate the fitted value as $\begin{pmatrix}1 & 292087 & 7.77 & 0 \end{pmatrix} \begin{pmatrix} 4100 \\ 0.0009343 \\ -12.00\\ 613.9\end{pmatrix} = 279.658 $
+
+The critical value for creating a $95\%$ confidence interval in this scenario is $t_{0.975, n-4} = t_{0.975, 46} = 2.012896$. The standard error for the fitted mean is $\text{SE}(\hat{Y_h}) = \sqrt{\hat{\sigma^2}\bm{x}_h' (\bm{X}'\bm{X})^{-1}\bm{x_h}}$.
+
 \end{bluebox}
 
 ### (f2) 
 
 Compute a 95\% prediction interval for the total labor hours for this new shipment.
 
+```{r}
+# Use model to predict interval:
+predict(PR1, new_obs, interval = "prediction", level = 0.95)
+```
+
 \begin{bluebox}
-a
+We can continue by building a $95\%$ prediction interval for the total labors hours for this new shipment using the construction:
+
+Here, what changes for a prediction interval as opposed to the confidence interval for the expected total hours is an expansion of the interval by inflating the standard error. For the prediction interval, our standard error formulation is changed to $\text{SE}_{\text{pred}}(\hat{Y_h}) = \sqrt{\hat{\sigma^2}(1 + \bm{x}_h' (\bm{X}'\bm{X})^{-1}\bm{x_h})}$. So, our interval is:
+
+$$
+95\% \text{ Pred. Int.} = \hat{Y}_h \pm t_{0.95, n-4} \times \sqrt{\hat{\sigma^2}(1 + \bm{x}_h' (\bm{X}'\bm{X})^{-1}\bm{x_h})} = (3987.24 , 4572.075).
+$$
+
 \end{bluebox}
+
+\newpage
 
 # Problem 2
 
 An analyst wanted to fit a regression model $Y_i=\beta_0+\beta_1X_{i1} + \beta_{2} X_{i2} + \beta_3 X_{i3} + \epsilon_i$, $i=1,2,\dots,n$, by the method of least squares when it is known that $\beta_2=5$. How can the analyst obtain the desired fit by using a multiple regression computer program? What if it is known that $\beta_3=0$?
 
 \begin{bluebox}
-To generate a least squares fit for MLR where one coefficient (e.g., $\beta_2 = 0$) is already known, ...
+\textbf{First Case:}
+To generate a least squares fit for MLR where one coefficient (e.g., $\beta_2 = 0$) is already known, we can adjust our response variable by subtracting the true coefficient multiplied by its input covariate $X_{i2}$, changing our output variable for our MLR to be $Y^{\star}_i = Y_i - 5X_{i2}$. Then, we can use the usual least squares method to regress the adjusted response on the remaining covariates and unknown parameters,
 
-To generate a least squares fit for 3-predictor MLR where two population coefficients (e.g., $\beta_2, \beta_3$) are known, we can HOW DO YOU DO THAT???????
+$$
+Y^\star_i = \beta_0 + \beta_1 X_{i1} + \beta_3 X_{i3} + \epsilon_i
+$$
 
+
+\textbf{Second Case:}
+I'm going to assume that the problem statement indicates that $\beta_2$ is now unknown again and that $\beta_3$ alone is known, and is equal to zero. In this circumstance, the model can be reduced to $Y_i=\beta_0+\beta_1X_{i1} + \beta_{2} X_{i2} + \epsilon_i$ and fit using least squares as a MLR model regressing on $X_{i1}$ and $X_{i2}$ with an intercept term included. If we do actually know that $\beta_2 = 5$, then our regression model could become:
+
+$$
+Y^\star_i = \beta_0 + \beta_1 X_{i1} + \epsilon_i.
+$$
+
+So, if the analyst is clever about how they implement the known values, they can proceed with building regression models with no issue. 
 \end{bluebox}
+
+\newpage
 
 # Problem 3 
 
@@ -521,7 +669,7 @@ Let $e_i$ denote the residual and also let $\hat{Y}_i$ denote the fitted value f
 ### (c2) $\sum^n_{i=1} e_i \hat{Y}_i=0$ always.
 
 \begin{bluebox}
-\textbf{TRUE}: Under the least squares method, residuals are always orthogonal to fitted values. Least squares gives us $\hat{\bm{Y}} = \bm{X}\hat{\bm{\beta}}$ and so $\bm{e}'\hat{\bm{Y}} = \bm{e}'\bm{X}\hat{\bm{\beta}} = (\bm{X}'\bm{e})'\hat{\bm{\beta}} = 0 $ because $(\bm{X}'\bm{e} = 0) due to the normal equations dictating orthogonality of the predictors and residuals. 
+\textbf{TRUE}: Under the least squares method, residuals are always orthogonal to fitted values. Least squares gives us $\hat{\bm{Y}} = \bm{X}\hat{\bm{\beta}}$ and so $\bm{e}'\hat{\bm{Y}} = \bm{e}'\bm{X}\hat{\bm{\beta}} = (\bm{X}'\bm{e})'\hat{\bm{\beta}} = 0 $ because $(\bm{X}'\bm{e} = 0)$ due to the normal equations dictating orthogonality of the predictors and residuals. 
 \end{bluebox}
 
 ### (c3) $\sum^n_{i=1} e_i X_{ij}=0$ always for $j=1,2$.
@@ -543,5 +691,36 @@ Let $e_i$ denote the residual and also let $\hat{Y}_i$ denote the fitted value f
 In a data set with 2 covariates and 100 observations, the sample variance for the responses is 8.158. When fitting a linear regression on the data, the $F$ statistics for testing the usefulness of the overall model is 41.26, the residual for the first observation is $-2.393$, and its standard error is $\sqrt{4.343}$. Find the standard error of the fitted value for the first observation.
 
 \begin{bluebox}
-a
+To get the standard error of a fitted value, we can use a formula that related this standard error to the mean squared error and leverage of the observation: $\text{SE}(\hat{Y}_1) = \sqrt{\text{MSE}\times h_{11}}$.
+
+Let's see if the information provided can help us get to the leverage of the first observation and the mean squared error.
+
+Leverage appears in the formula for the variance of the error term: $\text{Var}(e_i) = \sigma^2(1-h_{ii})$. The variance of the error can be replaced by $\text{SE}(e_i)^2 = (\sqrt{4.343})^2 = 4.343$ and we can substitute unknown $\sigma^2$ with its appropriate estimator $\text{MSE}$. So, we can isolate leverage:
+
+$$
+4.343 = \text{MSE}(1-h_{ii}) \implies h_{ii} = 1 - \frac{4.343}{\text{MSE}}.
+$$
+
+Now, we need to find $\text{MSE}$ to proceed with our calculation of the standard error for the fitted value of the first observation. 
+ 
+We are given the F-statistic, and we know that the F-statistic is calculated as $F = \frac{MSR}{MSE} = \frac{\frac{SSR}{2}}{\frac{SSE}{97}}$. (These degrees of freedom represent the number of predictors, and $n-p$ where $p$ is the number of coefficients in the model).
+
+The sample variance of $Y$ is $s_Y^2 = 8.158$, which can be related to the total sum of squares $\text{SSTO}$ which can help us to figure out the decomposition values of $\text{SSE}$ and $\text{SSR}$. The total sum of squares, $\text{SSTO} = (n-1)s^2_Y = 99 \times 8.158 = 807.642$. While we do not how the total sum of squares is distributed to $\text{SSR}$ and $\text{SSE}$, we can try to find these values, starting indirectly.
+
+The regression sum of squares can alternatively be expressed as $\text{SSR} = F\times k \times \text{MSE}$, and the error sum of squares can alternatively be expressed as $\text{SSE} = (n-p)\text{MSE}.$ So, we can express the total sum of squares in terms of its decomposition: 
+
+$$
+\text{SSTO} = Fk\text{MSE} + (n-p)\text{MSE} \implies 807.642 = (41.26)(2)\text{MSE} + (97)\text{MSE},
+$$
+Which can help us yield $\text{MSE}$ as:
+
+$$
+\text{MSE} = \frac{807.642}{(41.26)(2)+97} \approx 4.499
+$$
+
+Now we can finally use our attained $\text{MSE}$ in order to calculate the standard error of the fitted value for the first observation:
+
+$$
+\text{SE}(\hat{Y}_1) = \sqrt{\text{MSE} \times \left( 1 - \frac{4.343}{\text{MSE}}\right)} = \sqrt{4.499 \times \left( 1 - \frac{4.343}{4.499}\right)} \approx 0.395.
+$$
 \end{bluebox}
