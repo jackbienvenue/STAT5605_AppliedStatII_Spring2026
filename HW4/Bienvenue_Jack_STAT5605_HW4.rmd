@@ -1,0 +1,435 @@
+---
+title: "STAT 5605 Homework 4"
+subtitle: "February 20, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car"), 
+  function(pkg) suppressPackageStartupMessages(library(pkg, 
+                                                character.only = TRUE))))
+```
+
+
+
+# Problem 1
+
+The dataset hw4.csv contains the following variables:
+
+\begin{verbatim}
+    Y: MPG
+    X1: DISPLACEMENT
+    X2: HORSEPOWER
+    X3: WEIGHT
+\end{verbatim}
+
+```{r}
+carmpg <- read.csv("./hw4.csv")
+str(carmpg)
+nrow(carmpg)
+mod <- lm(y~x1+x3+x2, data=carmpg)
+summary(mod)
+anova(mod)
+SSR=sum((fitted(mod)-mean(carmpg$y))^2)
+SSR
+SSTO=sum((carmpg$y-mean(carmpg$y))^2)
+SSTO
+Anova(mod, type = "III")
+avPlots(mod)
+```
+
+## (a)  
+
+Obtain the analysis of variance table that decomposes the regression sum of squares into extra sums of squares associated with X1; with X3 given X1; and with X2 given X1 and X3.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b)  
+
+Test whether X2 can be dropped from the regression model given that X1 and X3 are retained. Use the $F$ test statistic and $\alpha=0.05$. State the alternatives, decision rule, and conclusion. What is the P-value of the test?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c)  
+
+Does SSR(X1)$+$SSR(X2|X1) equal SSR(X2)$+$SSR(X1|X2) here? Must this always be the case?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (d) 
+
+Calculate $R^2(X_1)$, $R^2(X_2)$, $R^2(X_1, X_2)$, $R^2_{Y1|2}$, $R^2_{Y2|1}$, $R^2_{Y2|1,3}$, and $R^2$. Explain what each coefficient measures and interpret your results.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (e) 
+
+Fit a regression model $Y_i=\beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\varepsilon_i$ to the data using X1 and X2 only.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (f)  
+
+For the model in part (e), prepare an added-variable plot for each of the predictor variables X1 and X2.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (g)  
+
+Do your plots in part (e) suggest that the regression relationships in the fitted regression function in part (e) are inappropriate for any of the predictor variables? Explain.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (h)  
+
+Suppose we want to see if it is the sum of DISPLACEMENT, HORSEPOWER, and WEIGHT that is really affecting the MPG. Perform an appropriate test to answer this question.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+
+
+
+
+
+
+# Problem 2
+
+For the data $(X_1,X_2,Y)=(-1,-1,7.2)$, $(-1,0,8.1)$, $(0,0,9.8)$, $(1,0,12.3)$, $(1,1,12.9)$, consider the model:   $E(Y)=\beta_0 + \beta_1 X_1 + \beta_2 X_2$.
+
+## (a)  
+
+Let $R^2(X_1)$ and $R^2(X_1,X_2)$ denote the coefficients of determination ($R^2$'s) in the regressions of $Y$ on $X_1$ and $Y$ on $X_1$ and $X_2,$ respectively.  Compute $R^2(X_1)$, $R^2_{Y2|1}$, and $R^2(X_1,X_2)$.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b)  
+
+Derive the relationship between $R^2(X_1,X_2)$ and $(R^2(X_1), R^2_{Y2|1})$.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c)  
+
+Empirically verify the relationship obtained in (ii) using the data given in this problem.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (d)  
+
+Compute $r_{YX_2\cdot X_1}$.  What is the relationship between $R^2_{Y2|1}$ and $r_{YX_2\cdot X_1}$?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+
+
+
+
+
+# Problem 3
+
+The following regression model is being considered in a market research study:
+$$
+    Y_i=\beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\beta_3X_{i1}^2+\varepsilon_i.
+$$
+
+Suppose that an R data frame, ``data", contains variables y, x1, and x2.
+The following R code is used to produce the full model:
+
+\begin{verbatim}
+dat$x11=dat$x1^2
+mod <- lm(y~x1+x2+x11, data=dat)
+\end{verbatim}
+
+State the reduced models and write the corresponding R codes for testing whether or not:
+
+## (a) $\beta_1=\beta_3=0$
+\begin{verbatim}
+mod <- lm(y~x2, data=dat)
+\end{verbatim}
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b) $\beta_0=0$
+\begin{verbatim}
+dat$x11=dat$x1^2
+mod <- lm(y ~ 0+x1+x2+x11, data=dat)
+\end{verbatim}
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c)  $\beta_3=5$
+\begin{verbatim}
+dat$x11=dat$x1^2
+dat$x115=5*dat$x1^2
+mod <- lm(y ~ x1+x2+offset(x115), data=dat)
+\end{verbatim}
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (d)  $\beta_0=10$
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (e) $\beta_1=\beta_2$
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (f) $\beta_1=\beta_3$
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+
+
+
+
+
+
+
+# Problem 4
+
+Determine whether the following statements are true. Give a brief justification of your answer.
+
+## (a) 
+
+Suppose that we fit the model $Y=\beta_0 + \beta_1 X+\epsilon$ to a dataset $\{ (Y_i, X_i), \; i=1,2,\dots, n\}$ with $S_{YY}=\sum^n_{i=1}(Y_i-\bar{Y})^2 >0$, where $\bar{Y}=\frac{1}{n}\sum^n_{i=1} Y_i$. Then, all the residuals must be zero when $R^2=1$.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b)  
+
+When we fit the model $Y=\beta_0 +\epsilon$ (i.e., no $X$'s) to a set of data, $R^2=0$, always.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c)  
+
+The model $Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_2 \log (X_1) + \epsilon$, where $X_1>0$, $E(\epsilon)=0$, and $\mbox{Var}(\epsilon)=\sigma^2>0$, is a linear model.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+
+
+
+
+
+
+
+# Problem (5) 
+
+An endocrinologist was interested in exploring the relationship between the level of a steroid (Y) and age (X) in healthy female subjects whose ages ranged from 8 to 25 years. She collected a sample of 27 healthy females in this age range. The data are given in ``Steroid$_{-}$level.txt''
+
+```{r}
+steroid <- read.table("./steroid_level.txt", header=TRUE)
+str(steroid)
+nrow(steroid) 
+steroid$x2=steroid$x^2
+PR5 <- lm(y~x+x2,data=steroid)
+summary(PR5)
+new_x_value <- data.frame(x = 15, x2=225)
+predicted_value2 <- predict(object = PR5, newdata = new_x_value, interval="prediction", level=0.99)
+print(predicted_value2)
+```
+
+## (a)  
+
+Fit regression model $Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \epsilon$. Plot the fitted regression function and the data. Does the quadratic regression function appear to be a good fit here? Find $R^2$.
+  
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b) 
+
+Test whether or not there is a regression relation; use $\alpha=0.01$. State the alternatives, decision rule, and conclusion. What is the P-value of the test?
+  
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c) 
+
+Predict the steroid levels of females aged 15 using a 99 percent prediction interval. Interpret your interval.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (d)  
+
+Test whether the quadratic term can be dropped from the model; use $\alpha=0.01$. State the alternatives, decision rule, and conclusion.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (e)  
+
+Obtain the residuals and plot them against the fitted values and against $x$ on separate graphs. Also prepare a normal probability plot. What do your plots show?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (f)  
+
+Test formally for lack of fit. Control the risk of a Type I error at .01. State the alternatives, decision rule, and conclusion. What assumptions did you make implicitly in this test?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+
+
+
+
+
+
+
+
+
+# Problem 6
+
+For predicting the number of active physicians (Y) in a county, it has been decided to include total population (X1) and total personal income (X2) as predictor variables. The question now is whether an additional predictor variable among land area (X3), percent of population 65 or older (X4), number of hospital beds (X5), and total serious crimes (X6) would be helpful in the model and, if so, which variable would be most helpful. Use the following R outputs to answer the following questions.
+
+\begin{verbatim}
+> anova(lm(Y ~ X1 + X2 + X3 + X4 + X5 + X6, data=dat))
+Analysis of Variance Table
+Response: Y
+           Df     Sum Sq    Mean Sq   F value    Pr(>F)
+X1          1 1243181164 1243181164 8851.8032 < 2.2e-16 ***
+X2          1   22058054   22058054  157.0596 < 2.2e-16 ***
+X3          1    4063370    4063370   28.9323 1.229e-07 ***
+X4          1     608535     608535    4.3329   0.03797 *
+X5          1   75286073   75286073  536.0582 < 2.2e-16 ***
+X6          1     196924     196924    1.4022   0.23701
+Residuals 433   60812180     140444
+\end{verbatim}
+
+
+\begin{verbatim}
+> anova(lm(Y ~ X1 + X2 + X4 + X5 + X6 + X3, data=dat))
+Analysis of Variance Table
+Response: Y
+           Df     Sum Sq    Mean Sq   F value  Pr(>F)
+X1          1 1243181164 1243181164 8851.8032 < 2e-16 ***
+X2          1   22058054   22058054  157.0596 < 2e-16 ***
+X4          1     541647     541647    3.8567 0.05019 .
+X5          1   79002640   79002640  562.5212 < 2e-16 ***
+X6          1     285448     285448    2.0325 0.15469
+X3          1     325166     325166    2.3153 0.12884
+Residuals 433   60812180     140444
+\end{verbatim}
+
+
+\begin{verbatim}
+> anova(lm(Y ~ X1 + X2 + X5 + X6 + X3 + X4, data=dat))
+Analysis of Variance Table
+Response: Y
+           Df     Sum Sq    Mean Sq   F value    Pr(>F)
+X1          1 1243181164 1243181164 8851.8032 < 2.2e-16 ***
+X2          1   22058054   22058054  157.0596 < 2.2e-16 ***
+X5          1   78070132   78070132  555.8815 < 2.2e-16 ***
+X6          1     230467     230467    1.6410 0.2008749
+X3          1     215515     215515    1.5345 0.2161052
+X4          1    1638788    1638788   11.6686 0.0006956 ***
+Residuals 433   60812180     140444
+\end{verbatim}
+
+\begin{verbatim}
+> anova(lm(Y ~ X1 + X2 + X6 + X3 + X4 + X5, data=dat))
+Analysis of Variance Table
+Response: Y
+           Df     Sum Sq    Mean Sq   F value    Pr(>F)
+X1          1 1243181164 1243181164 8851.8032 < 2.2e-16 ***
+X2          1   22058054   22058054  157.0596 < 2.2e-16 ***
+X6          1    1032359    1032359    7.3507   0.00697 **
+X3          1    3443417    3443417   24.5181 1.057e-06 ***
+X4          1     610295     610295    4.3455   0.03769 *
+X5          1   75068830   75068830  534.5114 < 2.2e-16 ***
+Residuals 433   60812180     140444
+\end{verbatim}
+
+
+## (a)  
+
+For each of the X3, X4, X5, and X6, calculate the coefficient of partial determination given that X1 and X2 are included in the model.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (b)  
+
+On the basis of the results in part (a), which of the four additional predictor variables is best? Is the extra sum of squares associated with this variable larger than those for the other three variables?
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (c)  
+
+Using the $F$ test statistic, test whether or not the variable determined to be best in part (b) is helpful in the regression model when X1 and X2 are included in the model; $\alpha=0.01$. State the alternatives, decision rule, and conclusion. Would the $F$ test statistics for the other three potential predictor variables be as large as the one here? Discuss.
+
+\begin{bluebox}
+a
+\end{bluebox}
+
+## (d) 
+
+Conduct an appropriate test using level of significance 0.05 to assess whether predictors $X_3,$ $X_4,$ and $X_6$ can be simultaneously dropped from an MLR model containing the six predictors ($X1-X6$). State the null and alternative hypotheses, test statistic, decision rule, and conclusion.
+
+\begin{bluebox}
+a
+\end{bluebox}
