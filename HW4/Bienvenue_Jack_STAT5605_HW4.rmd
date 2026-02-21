@@ -20,7 +20,7 @@ invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car"),
                                                 character.only = TRUE))))
 ```
 
-
+  
 
 # Problem 1
 
@@ -36,7 +36,6 @@ The dataset hw4.csv contains the following variables:
 ```{r}
 carmpg <- read.csv("./hw4.csv")
 str(carmpg)
-nrow(carmpg)
 mod <- lm(y~x1+x3+x2, data=carmpg)
 summary(mod)
 anova(mod)
@@ -48,28 +47,119 @@ Anova(mod, type = "III")
 avPlots(mod)
 ```
 
+\newpage
+
 ## (a)  
 
 Obtain the analysis of variance table that decomposes the regression sum of squares into extra sums of squares associated with X1; with X3 given X1; and with X2 given X1 and X3.
 
+```{r}
+# Sequential ANOVA (Type I) will help with solving this problem:
+anova(lm(y ~ x1 + x3 + x2, data = carmpg)) # type 1 for the order below
+```
+
 \begin{bluebox}
-a
+The problem defines a regression model for vehicle miles per gallon as:
+
+$$
+Y_i = \beta_0 + X_{i1}\beta_1 + X_{i2}\beta_2 + X_{i3}\beta_3 +\epsilon_i,
+$$
+
+Let's work on building the ANOVA tables with the desired composition. We can do this using sequential sums of squares where we decompose our sums of squares into $SSTO = SSR_{X_1} + SSR_{(X_3 | X_1)} + SSR_{(X_2|X_1,X_3)}+SSE$. The table becomes:
+
+\textbf{Extra SS associated with $X_1$}:
+
+\begin{tabular}{lccccc}
+    \toprule
+    Source & df & SS & MS & F & $p$ \\
+    \midrule
+    $X_1$ & 1 & 15440.2 & 15440.2 &  858.27 &  < 2.2e-16 \\
+    $(X_3 | X_1)$ & 1 & 1208.5 & 1208.5 & 67.178 & 3.654e-1 \\
+    $(X_2 | X_1, X_3)$ & 1 & 190.3  & 190.3 & 10.577 & 0.001245 \\
+    Error      & 388 & 6980 & 18.0 &  &  \\
+    \midrule
+    Total               & 391 & 23819 &  &  &  \\
+    \bottomrule
+\end{tabular}
+
 \end{bluebox}
 
 ## (b)  
 
 Test whether X2 can be dropped from the regression model given that X1 and X3 are retained. Use the $F$ test statistic and $\alpha=0.05$. State the alternatives, decision rule, and conclusion. What is the P-value of the test?
 
+```{r}
+# Calculate critical value of F for this problem:
+q1_crit_F <- qf(0.95, df1 = 1, df2 = 388)
+# Here, numerator df is # of restrictions,
+# denominator df is n-p-1 = 392-3-1
+cat("Critical F value:", q1_crit_F)
+```
+
 \begin{bluebox}
-a
+We can test whether $X_2$, the engine horsepower, can be dropped from the regression model on the condition that $X_1$, the engine displacement (cc), and $X_3$, the vehicle weight, with the hypotheses:
+
+$$
+H_0: \beta_2 = 0, \text{ and }
+$$
+
+$$
+H_1: \beta_2 \neq 0,
+$$
+
+Performing a partial F test. Our test statistics will be:
+
+$$
+F_{\text{test}} = \frac{(SSE_{X_2| X_1, X_3})/1}{MSE_{X_1,X_2,X_3}} =  \frac{190.3}{18} = 10.57
+$$
+
+As the question asks, we will state our test results using both the methods of the test statistic and p-value. 
+
+We will check whether out test statistic exceeds its critical value of $3.866$ and we will use a significance threshold of $\alpha = 0.05$ to check whether our attained p-value falls below this threshold. 
+
+Upon performing our test, we find that our test statistic exceeds the critical value ($10.57 > 3.866$), therefore we will reject the null hypothesis which stated that the slope associated with $X_2$ is zero when $X_1$ and $X_3$ are already involved in the model. 
+
+The p-value for this test is given by the R output as 0.001245, which is below our significance threshold, verifying that we can reject the null hypothesis. 
+
 \end{bluebox}
+
 
 ## (c)  
 
 Does SSR(X1)$+$SSR(X2|X1) equal SSR(X2)$+$SSR(X1|X2) here? Must this always be the case?
 
+```{r}
+# x1, x2 order:
+anova(lm(y~x1+x2, data = carmpg))
+# x2, x1 order:
+anova(lm(y~x2+x1, data = carmpg))
+```
+
+
+
 \begin{bluebox}
-a
+Let's find $SSR(X_1)+SSR(X_2|X_1)$ and $SSR(X_2)+SSR(X_1|X_2)$ to judge if they are equal.
+
+$$
+SSR(X1)+SSR(X2|X1) = 15440.2 + 383.5 = 15823.7, \text{ and }
+$$
+
+$$
+SSR(X2)+SSR(X1|X2) = 14433.1 + 1390.6 = 15823.7,
+$$
+
+Therefore, we find that $SSR(X_1)+SSR(X_2|X_1)$ and $SSR(X_2)+SSR(X_1|X_2)$. 
+
+This will always be the case, because:
+
+$$ 
+SSR(X_2|X_1) = SSR(X_1,X_2) - SSR(X_1) \implies SSR(X_2|X_1) + SSR(X_1) = SSR(X_1,X_2) $$
+
+This is symmetric with $SSR(X_1|X_2)$:
+
+$$ SSR(X_1|X_2) = SSR(X_2,X_1) - SSR(X_2) \implies SSR(X_1|X_2) + SSR(X_1) = SSR(X_2,X_1),$$
+
+Since $SSR(X_2, X_1) = SSR(X_1,X_2),$ the two expressions $SSR(X_1)+SSR(X_2|X_1)$ and $SSR(X_2)+SSR(X_1|X_2)$ are always equal.
 \end{bluebox}
 
 ## (d) 
@@ -77,39 +167,99 @@ a
 Calculate $R^2(X_1)$, $R^2(X_2)$, $R^2(X_1, X_2)$, $R^2_{Y1|2}$, $R^2_{Y2|1}$, $R^2_{Y2|1,3}$, and $R^2$. Explain what each coefficient measures and interpret your results.
 
 \begin{bluebox}
-a
+Let's carefully calculate all of these variations of the coefficient of determination:
+
+$$
+R^2(X_1) = \frac{SSR(X_1)}{SSTO} = \frac{15440.2}{23819} = 0.648,
+$$
+
+This coefficient represents the variation in $Y$ that can be explained by variations in $X_1$ when we regress $Y$ on $X_1$. Here, we can explain $64.8\%$ of the variation in vehicle gas mileage (mpg) through variations in engine displacement. 
+
+$$
+R^2(X_2) = \frac{SSR(X_2)}{SSTO} = \frac{14433.1}{23819} = 0.606,
+$$
+This coefficient represents the variation in $Y$ that can be explained by variations in $X_1$ when we regress $Y$ on $X_1$. Here, we can explain $60.6\%$ of the variation in vehicle mpg through variations in vehicle horsepower. 
+
+$$
+R^2(X_1, X_2) = \frac{SSR(X_1, X_2)}{SSTO} = \frac{15823.7}{23819} = 0.664,
+$$
+This coefficient represents the variation in $Y$ that can be explained by variations in $X_1$ and $X_2$ when we regress $Y$ on both $X_1$ and $X_2$. So, we can explain $66.4\%$ of the variation in vehicle mpg on variations in engine displacement and vehicle horsepower. 
+
+$$
+R^2_{Y1|2} = \frac{SSR(X_1 | X_2)}{SSE(X_2)} = \frac{1390.6}{23819 - 14433.1} = 0.148,
+$$
+This coefficient represents the additional variation in $Y$ explained by adding $X_1$ to a model already containing $X_2$. So, adding vehicle engine displacement to our model helps explain an additional $14.8\%$ of the variance in mpg compared to a model with only information about the variation in engine horsepower.
+
+$$
+R^2_{Y2|1} = \frac{SSR(X_2|X_1)}{SSE(X_1)} = \frac{383.5}{23819 - 15440.2} = 0.048,
+$$
+
+This coefficient represents the additional variation in $Y$ explained by adding $X_2$ to a model already containing $X_1$. So, adding vehicle horsepower to our model helps explain an additional $4.8\%$ of the variance in mpg compared to a model with only information about the variation in engine displacement.
+
+$$
+R^2_{Y2|1,3} = \frac{SSR(X_2 | X_1, X_3 )}{SSE(X_1, X_3)} = \frac{190.3}{23819 - 15440.2-1208.5} = 0.027,
+$$
+
+This coefficient represents the additional variation in $Y$ explained by adding $X_2$ to a model already containing $X_1$ and $X_3$. So, adding vehicle horsepower to our model helps explain an additional $2.7\%$ of the variance in mpg compared to a model with only information about the variation in engine displacement and vehicle weight.
+
+$$
+R^2 = \frac{SSR}{SSTO} = \frac{16839}{23819} = 0.707,
+$$
+
+This coefficient represents the variation in $Y$ that can be explained by variations in $X_1, X_2, \text{ and }, X_3$, the full model. Here, $70.7\%$ of the variation in mpg can be explained by variations in engine displacement (cc), engine horsepower, and vehicle weight. 
+
 \end{bluebox}
 
 ## (e) 
 
 Fit a regression model $Y_i=\beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\varepsilon_i$ to the data using X1 and X2 only.
 
-\begin{bluebox}
-a
-\end{bluebox}
+```{r}
+q1e_model <- lm(y ~ x1 + x2,  data=carmpg) #VERIFY!
+summary(q1e_model)
+```
 
 ## (f)  
 
 For the model in part (e), prepare an added-variable plot for each of the predictor variables X1 and X2.
 
-\begin{bluebox}
-a
-\end{bluebox}
+```{r}
+# Added-variable plot for X1:
+
+# Added-variable plot for X2:
+```
 
 ## (g)  
 
-Do your plots in part (e) suggest that the regression relationships in the fitted regression function in part (e) are inappropriate for any of the predictor variables? Explain.
+Do your plots in part (f) suggest that the regression relationships in the fitted regression function in part (e) are inappropriate for any of the predictor variables? Explain.
 
 \begin{bluebox}
-a
+The plots from part (f) suggest ????????
 \end{bluebox}
 
 ## (h)  
 
 Suppose we want to see if it is the sum of DISPLACEMENT, HORSEPOWER, and WEIGHT that is really affecting the MPG. Perform an appropriate test to answer this question.
 
+```{r}
+# Perform appropriate F-test:
+
+```
+
 \begin{bluebox}
-a
+We can evaluate the capability of a random variable $X_4 = X_1+X_2+X_3$ by using this new random variable to regress $y$ (MPG) upon, and compare the results of our new regression to the modeling containing all predictors separately.
+
+We can use the ???????? test to compare the models' performance. We can structure our test in the following way:
+
+$$
+H_0: ????????, \text{ versus}
+$$
+
+$$
+H_1: ????????
+$$
+
+Our test results indicate ????????
 \end{bluebox}
 
 
@@ -117,17 +267,44 @@ a
 
 
 
-
+\newpage
 # Problem 2
 
 For the data $(X_1,X_2,Y)=(-1,-1,7.2)$, $(-1,0,8.1)$, $(0,0,9.8)$, $(1,0,12.3)$, $(1,1,12.9)$, consider the model:   $E(Y)=\beta_0 + \beta_1 X_1 + \beta_2 X_2$.
 
 ## (a)  
 
+```{r}
+# Let's make our data into a data frame for our calculations:
+q2_x1 <- c(-1, -1, 0, 1, 1)
+q2_x2 <- c(-1, 0, 0, 0, 1)
+q2_y <- c(7.2, 8.1, 9.8, 12.3, 12.9)
+
+q2_df <- data.frame(
+  x1 = q2_x1,
+  x2 = q2_x2,
+  y = q2_y
+)
+
+print(q2_df)
+```
+
 Let $R^2(X_1)$ and $R^2(X_1,X_2)$ denote the coefficients of determination ($R^2$'s) in the regressions of $Y$ on $X_1$ and $Y$ on $X_1$ and $X_2,$ respectively.  Compute $R^2(X_1)$, $R^2_{Y2|1}$, and $R^2(X_1,X_2)$.
 
 \begin{bluebox}
-a
+Let's compute each of the coefficients of determination:
+
+$$
+R^2(X_1) = ,
+$$
+
+$$
+R^2_{Y 2|1} =     , \text{ and }
+$$
+
+$$
+R^2(X_1, X_2) =       .
+$$
 \end{bluebox}
 
 ## (b)  
@@ -135,7 +312,23 @@ a
 Derive the relationship between $R^2(X_1,X_2)$ and $(R^2(X_1), R^2_{Y2|1})$.
 
 \begin{bluebox}
-a
+The relationship between $R^2(X_1,X_2)$ and $(R^2(X_1), R^2_{Y2|1})$ can be derived by starting with a look at the expressions for each coefficient of determination. 
+
+$$
+R^2(X_1,X_2) =     , \text{ and }
+$$
+
+$$
+R^2_{Y2|1} =         .
+$$
+
+From these expressions, we can ????????
+
+$$ 
+simplifcation,
+$$
+
+So, RELATIONSHIP!
 \end{bluebox}
 
 ## (c)  
@@ -143,7 +336,17 @@ a
 Empirically verify the relationship obtained in (ii) using the data given in this problem.
 
 \begin{bluebox}
-a
+Let's verify that the relationship from part (b) holds for this particular example by calculating $R^2(X_1,X_2)$ and $(R^2(X_1), R^2_{Y2|1})$ for this data set:
+
+$$
+R^2(X_1,X_2) =     , \text{ and }
+$$
+
+$$
+R^2_{Y2|1} =         .
+$$
+So, we find that RELATIONSHIP!
+
 \end{bluebox}
 
 ## (d)  
@@ -151,14 +354,25 @@ a
 Compute $r_{YX_2\cdot X_1}$.  What is the relationship between $R^2_{Y2|1}$ and $r_{YX_2\cdot X_1}$?
 
 \begin{bluebox}
-a
+Lets compute $r_{YX_2\cdot X_1}$:
+
+$$
+r_{YX_2\cdot X_1} = , \text{ and }
+$$
+
+$$
+r_{YX_2\cdot X_1},
+$$ 
+
+So, these two quantities are related by RELATIONSHIP!
+
 \end{bluebox}
 
 
 
 
 
-
+\newpage
 # Problem 3
 
 The following regression model is being considered in a market research study:
@@ -181,8 +395,15 @@ State the reduced models and write the corresponding R codes for testing whether
 mod <- lm(y~x2, data=dat)
 \end{verbatim}
 
+```{r}
+# Test for beta1=beta3=0:
+
+```
+
 \begin{bluebox}
-a
+To test whether $\beta_1 = \beta_3 = 0$, we must have reduced models MODELS!!!!!!!!
+
+We find ???????
 \end{bluebox}
 
 ## (b) $\beta_0=0$
@@ -191,8 +412,14 @@ dat$x11=dat$x1^2
 mod <- lm(y ~ 0+x1+x2+x11, data=dat)
 \end{verbatim}
 
+```{r}
+# Test for beta0 = 0
+```
+
 \begin{bluebox}
-a
+To test whether $\beta_0 = 0$, we must have reduced models MODELS!!!!!!!!
+
+We find ???????
 \end{bluebox}
 
 ## (c)  $\beta_3=5$
@@ -202,26 +429,53 @@ dat$x115=5*dat$x1^2
 mod <- lm(y ~ x1+x2+offset(x115), data=dat)
 \end{verbatim}
 
+```{r}
+# To test whether beta3 = 5,
+
+``` 
+
 \begin{bluebox}
-a
+To test whether $\beta_3 = 5$, we must have reduced models MODELS!!!!!!!
+
+We find ????????
 \end{bluebox}
 
 ## (d)  $\beta_0=10$
 
+```{r}
+# Test for \beta_0 = 10
+```
+
 \begin{bluebox}
-a
+To test whether $\beta_0 = 10$, we must have reduced models MODELS!!!!!!!
+
+We find ????????
 \end{bluebox}
 
 ## (e) $\beta_1=\beta_2$
 
+```{r}
+# Test for beta1 = beta2
+
+```
+
 \begin{bluebox}
-a
+To test whether $\beta_1 = \beta_2$, we must have reduced models MODELS!!!!!!!
+
+We find ????????
 \end{bluebox}
 
 ## (f) $\beta_1=\beta_3$
 
+```{r}
+# Test for beta1 = beta3
+
+```
+
 \begin{bluebox}
-a
+To test whether $\beta_1 = \beta_3$, we must have reduced models MODELS!!!!!!!
+
+We find ????????
 \end{bluebox}
 
 
@@ -231,6 +485,10 @@ a
 
 
 
+
+
+
+\newpage
 # Problem 4
 
 Determine whether the following statements are true. Give a brief justification of your answer.
@@ -240,7 +498,9 @@ Determine whether the following statements are true. Give a brief justification 
 Suppose that we fit the model $Y=\beta_0 + \beta_1 X+\epsilon$ to a dataset $\{ (Y_i, X_i), \; i=1,2,\dots, n\}$ with $S_{YY}=\sum^n_{i=1}(Y_i-\bar{Y})^2 >0$, where $\bar{Y}=\frac{1}{n}\sum^n_{i=1} Y_i$. Then, all the residuals must be zero when $R^2=1$.
 
 \begin{bluebox}
-a
+\textbf{TRUE/FALSE}: 
+
+
 \end{bluebox}
 
 ## (b)  
@@ -248,7 +508,10 @@ a
 When we fit the model $Y=\beta_0 +\epsilon$ (i.e., no $X$'s) to a set of data, $R^2=0$, always.
 
 \begin{bluebox}
-a
+\textbf{TRUE}:
+
+The coefficient of determination is formulated as $R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$. For the mean-only model, the fitted values $\hat{y}_i$ are the same as the mean values $\bar{y}$. So, the numerator and denominator of the $\frac{SSE}{SSTO}$ fraction become equivalent, and so $R^2$ will always be $0$ for the mean model.
+
 \end{bluebox}
 
 ## (c)  
@@ -256,7 +519,8 @@ a
 The model $Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_2 \log (X_1) + \epsilon$, where $X_1>0$, $E(\epsilon)=0$, and $\mbox{Var}(\epsilon)=\sigma^2>0$, is a linear model.
 
 \begin{bluebox}
-a
+\textbf{TRUE}:
+This model is linear in all its coefficients $\bm{\beta} = (\beta_0, \beta_1, \beta_2, \beta_3)^\top$, and therefore is a linear model for $Y$.
 \end{bluebox}
 
 
@@ -266,6 +530,9 @@ a
 
 
 
+
+
+\newpage
 # Problem (5) 
 
 An endocrinologist was interested in exploring the relationship between the level of a steroid (Y) and age (X) in healthy female subjects whose ages ranged from 8 to 25 years. She collected a sample of 27 healthy females in this age range. The data are given in ``Steroid$_{-}$level.txt''
@@ -285,49 +552,134 @@ print(predicted_value2)
 ## (a)  
 
 Fit regression model $Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \epsilon$. Plot the fitted regression function and the data. Does the quadratic regression function appear to be a good fit here? Find $R^2$.
+
+```{r, fig.width = 8, fig.height = 5, fig.cap = "F Steroid Level Regression"}
+# Fit regression model:
+
+# Plot fitted regression fxn with data:
+
+
+# Calculate R^2
+```
   
 \begin{bluebox}
-a
+The regression function does (not?) appear to be a good fit here.
+
+We still \emph{can} calculate $R^2$ for this example, but its interpretation is no longer valid as our model is no longer linear in $X_i$'s. The $R^2$ value is $.$.
 \end{bluebox}
 
 ## (b) 
 
+```{r}
+# Perform hypothesis test
+
+```
+
 Test whether or not there is a regression relation; use $\alpha=0.01$. State the alternatives, decision rule, and conclusion. What is the P-value of the test?
   
 \begin{bluebox}
-a
+To test for whether there is a regression relation between $Y$ and $X$ \& $X^2$, we can use the hypotheses:
+
+$$
+H_0: , \text{ and }
+$$
+
+$$
+H_1: , \text{ and }
+$$
+
+After performing our test using a prespecified significance level of $\alpha = 0.01$, we find...
+
+Therefore, we have evidence to suggest that there is (NOT) a regression relation between $Y$ and $X$ \& $X^2$.
 \end{bluebox}
 
 ## (c) 
 
 Predict the steroid levels of females aged 15 using a 99 percent prediction interval. Interpret your interval.
 
+```{r}
+# Calculate prediction interval (99%)
+
+```
+
 \begin{bluebox}
-a
+We can use a $99\%$ prediction interval to predict the steroid levels in $15$ year old girls, which ends up being $()$. This interval suggests that ...
 \end{bluebox}
 
 ## (d)  
 
 Test whether the quadratic term can be dropped from the model; use $\alpha=0.01$. State the alternatives, decision rule, and conclusion.
 
+```{r}
+# Perform test
+```
+
 \begin{bluebox}
-a
+We can test whether the quadratic term can be dropped from the model using hypotheses:
+
+$$
+H_0: \text{ and }
+$$
+
+$$
+H_A: ,
+$$
+
+Which result in a p-value of $,$ which we compare to our prespecified significance level $\alpha = 0.01$ to find that ...
+
+Therefore, we can conclude ...
 \end{bluebox}
 
 ## (e)  
 
 Obtain the residuals and plot them against the fitted values and against $x$ on separate graphs. Also prepare a normal probability plot. What do your plots show?
 
+```{r, fig.cap ="a"}
+# Plot of residuals vs fitted values
+
+```
+
+
+```{r, fig.cap ="b"}
+# Plot of residuals vs x
+
+```
+
+```{r, fig.cap ="c"}
+# Normal probability plot
+```
+
 \begin{bluebox}
-a
+Figure . shows...
+
+Figure . shows...
+
+Figure . shows...
 \end{bluebox}
 
 ## (f)  
 
 Test formally for lack of fit. Control the risk of a Type I error at .01. State the alternatives, decision rule, and conclusion. What assumptions did you make implicitly in this test?
 
+```{r}
+
+```
+
 \begin{bluebox}
-a
+Now we can test for a lack of fit with a significance level $\alpha = 0.01$ and hypotheses:
+
+$$
+H_0: \text{ and }
+$$
+
+$$
+H_1: 
+$$
+
+Upon running our test, we find...
+
+Our assumptions for this test include...
+
 \end{bluebox}
 
 
@@ -339,6 +691,8 @@ a
 
 
 
+
+\newpage
 # Problem 6
 
 For predicting the number of active physicians (Y) in a county, it has been decided to include total population (X1) and total personal income (X2) as predictor variables. The question now is whether an additional predictor variable among land area (X3), percent of population 65 or older (X4), number of hospital beds (X5), and total serious crimes (X6) would be helpful in the model and, if so, which variable would be most helpful. Use the following R outputs to answer the following questions.
