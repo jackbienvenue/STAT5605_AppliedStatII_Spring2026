@@ -453,7 +453,11 @@ mod <- lm(y~x2, data=dat)
 ```
 
 \begin{bluebox}
-To test whether $\beta_1 = \beta_3 = 0$, we must have reduced models MODELS!!!!!!!!
+To test whether $\beta_1 = \beta_3 = 0$, we must have reduced model:
+
+$$
+    Y_i=\beta_0+\beta_2X_{i2}+\varepsilon_i.
+$$
 
 We find ???????
 \end{bluebox}
@@ -469,7 +473,11 @@ mod <- lm(y ~ 0+x1+x2+x11, data=dat)
 ```
 
 \begin{bluebox}
-To test whether $\beta_0 = 0$, we must have reduced models MODELS!!!!!!!!
+To test whether $\beta_0 = 0$, we must have reduced model:
+
+$$
+    Y_i=\beta_1X_{i1}+\beta_2X_{i2}+\beta_3X_{i1}^2+\varepsilon_i.
+$$
 
 We find ???????
 \end{bluebox}
@@ -487,7 +495,11 @@ mod <- lm(y ~ x1+x2+offset(x115), data=dat)
 ``` 
 
 \begin{bluebox}
-To test whether $\beta_3 = 5$, we must have reduced models MODELS!!!!!!!
+To test whether $\beta_3 = 5$, we must have reduced model:
+
+$$
+    (Y_i - 5X^2_{i1}) =\beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\varepsilon_i.
+$$
 
 We find ????????
 \end{bluebox}
@@ -499,7 +511,11 @@ We find ????????
 ```
 
 \begin{bluebox}
-To test whether $\beta_0 = 10$, we must have reduced models MODELS!!!!!!!
+To test whether $\beta_0 = 10$, we must have reduced model:
+
+$$
+(Y_i - 10) = \beta_1X_{i1}+\beta_2X_{i2}+\beta_3X_{i1}^2+\varepsilon_i.
+$$
 
 We find ????????
 \end{bluebox}
@@ -512,9 +528,13 @@ We find ????????
 ```
 
 \begin{bluebox}
-To test whether $\beta_1 = \beta_2$, we must have reduced models MODELS!!!!!!!
+To test whether $\beta_1 = \beta_2$, we must have reduced model:
 
-We find ????????
+$$
+    Y_i=\beta_0+\beta_3X_{i1}^2+ \beta_4(X_{i1}+X_{i2}) + \varepsilon_i.
+$$
+If $\beta_1$ is truly equal to $\beta_2$ (or if this modeling relationship is better than the ordinary full model), we should find that this model performs better than the full model under a partial F test. 
+
 \end{bluebox}
 
 ## (f) $\beta_1=\beta_3$
@@ -525,9 +545,13 @@ We find ????????
 ```
 
 \begin{bluebox}
-To test whether $\beta_1 = \beta_3$, we must have reduced models MODELS!!!!!!!
+To test whether $\beta_1 = \beta_3$, we must have reduced model:
 
-We find ????????
+$$
+    Y_i = \beta_2X_{i2}+ \beta_5(X_{i1} +X_{i1}^2)+\varepsilon_i,
+$$
+Which, if preferable to the full model, should perform better under a partial F-test.
+
 \end{bluebox}
 
 
