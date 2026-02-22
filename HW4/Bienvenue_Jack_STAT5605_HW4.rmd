@@ -15,12 +15,10 @@ fontsize: 12pt
 ---
 
 ```{r setup, include=FALSE}
-invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car"), 
+invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car", "broom"), 
   function(pkg) suppressPackageStartupMessages(library(pkg, 
                                                 character.only = TRUE))))
 ```
-
-  
 
 # Problem 1
 
@@ -110,7 +108,7 @@ $$
 Performing a partial F test. Our test statistics will be:
 
 $$
-F_{\text{test}} = \frac{(SSE_{X_2| X_1, X_3})/1}{MSE_{X_1,X_2,X_3}} =  \frac{190.3}{18} = 10.57
+F_{\text{test}} = \frac{(SSR_{X_2| X_1, X_3})/1}{MSE_{X_1,X_2,X_3}} =  \frac{190.3}{18} = 10.57
 $$
 
 As the question asks, we will state our test results using both the methods of the test statistic and p-value. 
@@ -215,7 +213,7 @@ This coefficient represents the variation in $Y$ that can be explained by variat
 Fit a regression model $Y_i=\beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\varepsilon_i$ to the data using X1 and X2 only.
 
 ```{r}
-q1e_model <- lm(y ~ x1 + x2,  data=carmpg) #VERIFY!
+q1e_model <- lm(y ~ x1 + x2,  data=carmpg)
 summary(q1e_model)
 ```
 
@@ -225,8 +223,39 @@ For the model in part (e), prepare an added-variable plot for each of the predic
 
 ```{r}
 # Added-variable plot for X1:
+## Residuals of Y ~ X2
+res_y_x2 <- resid(lm(y ~ x2, data = carmpg))
+## Residuals of X1 ~ X2
+res_x1_x2 <- resid(lm(x1 ~ x2, data = carmpg))
+
+av_x1 <- data.frame( res_x1 = res_x1_x2, res_y  = res_y_x2)
+
+ggplot(av_x1, aes(x = res_x1, y = res_y)) +
+  geom_point(color = "forestgreen", size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "#400", linewidth = 1) +
+  labs(title = "Added-Variable Plot for X1",
+    subtitle = "Effect of X1 on Y Adjusting for X2",
+    x = "Residuals of X1 | X2",
+    y = "Residuals of Y | X2") + theme_minimal(base_size = 14)
 
 # Added-variable plot for X2:
+## Residuals of Y ~ X1
+res_y_x1 <- resid(lm(y ~ x1, data = carmpg))
+## Residuals of X2 ~ X1
+res_x2_x1 <- resid(lm(x2 ~ x1, data = carmpg))
+
+av_x2 <- data.frame( res_x2 = res_x2_x1, res_y  = res_y_x1)
+
+ggplot(av_x2, aes(x = res_x2, y = res_y)) +
+  geom_point(color = "forestgreen", size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "#400", linewidth = 1) +
+  labs(
+    title = "Added-Variable Plot for X2",
+    subtitle = "Effect of X2 on Y Adjusting for X1",
+    x = "Residuals of X2 | X1",
+    y = "Residuals of Y | X1"
+  ) +
+  theme_minimal(base_size = 14)
 ```
 
 ## (g)  
@@ -234,7 +263,7 @@ For the model in part (e), prepare an added-variable plot for each of the predic
 Do your plots in part (f) suggest that the regression relationships in the fitted regression function in part (e) are inappropriate for any of the predictor variables? Explain.
 
 \begin{bluebox}
-The plots from part (f) suggest ????????
+The plots from part (f) do not suggest that the regression relationships in the regression function $Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2X_{i2} + \epsilon_i$ are inappropriate. Our added-variable plots are point clouds that appear to have relatively constant variance and no obvious systematic departures in linearity.
 \end{bluebox}
 
 ## (h)  
@@ -243,23 +272,27 @@ Suppose we want to see if it is the sum of DISPLACEMENT, HORSEPOWER, and WEIGHT 
 
 ```{r}
 # Perform appropriate F-test:
+## Build proposed model:
+carmpg$x4 <- carmpg$x1 + carmpg$x2 + carmpg$x3
+q1_h_model <- lm(y ~ x4, data = carmpg)
 
+anova(q1_h_model, mod)
 ```
 
 \begin{bluebox}
 We can evaluate the capability of a random variable $X_4 = X_1+X_2+X_3$ by using this new random variable to regress $y$ (MPG) upon, and compare the results of our new regression to the modeling containing all predictors separately.
 
-We can use the ???????? test to compare the models' performance. We can structure our test in the following way:
+Since the sum $X_4 = X_1+X_2+X_3$ would indicate that all three variables would have equal weighting, we can structure our test in the following way:
 
 $$
-H_0: ????????, \text{ versus}
+H_0: \beta_1 = \beta_2 = \beta_3, \text{ versus}
 $$
 
 $$
-H_1: ????????
+H_1: \text{At least two } \beta_i \; (i=1,2,3) \text{ differ}.
 $$
 
-Our test results indicate ????????
+To run our test, let's prespecify a significance level of $\alpha = 0.05$. Our test results using a partial F test give a p-value of $0.009059$, far below our threshold. Therefore, we can reject the null hypothesis which stated that the coefficients for the three predictors are identical. Therefore, we have evidence to suggest that the individual effects of the predictors in combination have a better explanatory power over the variation in mpg than the effect of the sum of the predictors.
 \end{bluebox}
 
 
@@ -287,6 +320,16 @@ q2_df <- data.frame(
 )
 
 print(q2_df)
+
+## Now run the regressions to get all necessary sums of squares for coefficient 
+## of determination calculations:
+
+q2a_lm_x1 <- lm(y ~ x1, data=q2_df)
+anova(q2a_lm_x1)
+
+q2a_lm_x1x2 <- lm (y ~ x1 + x2, data = q2_df)
+summary(q2a_lm_x1x2)
+anova(q2a_lm_x1x2)
 ```
 
 Let $R^2(X_1)$ and $R^2(X_1,X_2)$ denote the coefficients of determination ($R^2$'s) in the regressions of $Y$ on $X_1$ and $Y$ on $X_1$ and $X_2,$ respectively.  Compute $R^2(X_1)$, $R^2_{Y2|1}$, and $R^2(X_1,X_2)$.
@@ -295,15 +338,15 @@ Let $R^2(X_1)$ and $R^2(X_1,X_2)$ denote the coefficients of determination ($R^2
 Let's compute each of the coefficients of determination:
 
 $$
-R^2(X_1) = ,
+R^2(X_1) = \frac{SSR(X_1)}{SSTO} = \frac{24.5025}{25.172} = 0.97340,
 $$
 
 $$
-R^2_{Y 2|1} =     , \text{ and }
+R^2_{Y 2|1} = \frac{SSR(X_2|X_1)}{SSE(X_1)} = \frac{0.5625}{0.6695} = 0.84018, \text{ and }
 $$
 
 $$
-R^2(X_1, X_2) =       .
+R^2(X_1, X_2) = \frac{SSR(X_1, X_2)}{SSTO} = \frac{24.5025+0.5625}{24.5025+0.5625+0.1070} = 0.99575.
 $$
 \end{bluebox}
 
@@ -315,20 +358,21 @@ Derive the relationship between $R^2(X_1,X_2)$ and $(R^2(X_1), R^2_{Y2|1})$.
 The relationship between $R^2(X_1,X_2)$ and $(R^2(X_1), R^2_{Y2|1})$ can be derived by starting with a look at the expressions for each coefficient of determination. 
 
 $$
-R^2(X_1,X_2) =     , \text{ and }
+R^2(X_1) = \frac{SSR(X_1)}{SSTO}; \quad R^2_{Y 2|1} = \frac{SSR(X_2|X_1)}{SSE(X_1)} ; \quad \text{ and } R^2_{X_1, X_2} = \frac{SSR(X_1, X_2)}{SSTO}
 $$
 
+To express $R^2(X_1,X_2)$ in terms of ($R^2(X_1)$, $R^2(X2|X_1)$), we have to recognize some helpful relationships for coefficients of determination. First, $R^2(X_1) = 1 - \frac{SSE(X_1)}{SSTO} \implies SSE(X_1) = SSTO(1-R^2(X_1))$. Next, we will want to come up with an expression for $SSR(X_2|X_1)$, $SSR(X_2|X_1) = SSR(X_2, X_1) - SSR(X_1)$ (from $SSR(X_1, X_2) = SSR(X_2 | X_1) + SSE(X_1)$. Using these expressions,
+
 $$
-R^2_{Y2|1} =         .
+R^2_{(X_1, X_2)} = \frac{SSR(X_1, X_2)}{SSTO} = \frac{SSR(X_2|X_1) +SSE(X_1)}{SSTO} = \frac{SSR(X_2|X_1)}{SSTO} + R^2(X_1),
+$$
+We don't have a particular coefficient of determination that lines up with $\frac{SSR(X_2|X_1)}{SSTO}$, but we can decompose this term by recognizing $R^2_{Y2|1} = \frac{SSR(X_2|X_1)}{SSE(X_1)},$ or $SSE(X_1) \times R^2_{Y2|1} = SSR(X_2|X_1).$ Substituting this in:
+
+$$
+R^2_{(X_1, X_2)} = \frac{SSE(X_1) \times R^2_{Y2|1}}{SSTO} + R^2(X_1) = R^2_{Y2|1}(1-R^2(X_1)) + R^2(X_1)
 $$
 
-From these expressions, we can ????????
-
-$$ 
-simplifcation,
-$$
-
-So, RELATIONSHIP!
+So, we can actually express $R^2_{(X_1, X_2)}$ directly in terms of $\left(R^2_{Y2|1},R^2(X_1)\right)$.
 \end{bluebox}
 
 ## (c)  
@@ -498,8 +542,9 @@ Determine whether the following statements are true. Give a brief justification 
 Suppose that we fit the model $Y=\beta_0 + \beta_1 X+\epsilon$ to a dataset $\{ (Y_i, X_i), \; i=1,2,\dots, n\}$ with $S_{YY}=\sum^n_{i=1}(Y_i-\bar{Y})^2 >0$, where $\bar{Y}=\frac{1}{n}\sum^n_{i=1} Y_i$. Then, all the residuals must be zero when $R^2=1$.
 
 \begin{bluebox}
-\textbf{TRUE/FALSE}: 
+\textbf{TRUE}: 
 
+We can define the coefficient of determination $R^2$ as $R^2 = 1-\frac{\sum(Y_i - \hat{Y})^2}{\sum(Y_i - \bar{Y})^2}$, so for this rhs expression to equal 1 when $R^2 = 1$, the residual sum of squares $\sum(Y_i - \hat{Y})^2$ must be zero. Since the residual sum of squares is a sum of non-negative values, the sum will only be equal if every summed element is zero. Here, each summed element is the squared residual, so the underlying residual must be zero. Therefore, all residuals must be 0 when $R^2=1$ given the total sum of squares is positive.
 
 \end{bluebox}
 
@@ -761,7 +806,22 @@ Residuals 433   60812180     140444
 For each of the X3, X4, X5, and X6, calculate the coefficient of partial determination given that X1 and X2 are included in the model.
 
 \begin{bluebox}
-a
+Let's calculate these four coefficients of partial determination:
+
+$$
+R^2_{Y 3 | 1,2} = \frac{SSR(X_3|X_1, X_2)}{SSE(X_1, X_2)} = \frac{4063370}{140967082} = 0.028825,
+$$
+$$
+R^2_{Y 4 | 1,2} = \frac{SSR(X_3|X_1, X_2)}{SSE(X_1, X_2)} = \frac{541647}{140967082} = 0.003842,
+$$
+
+$$
+R^2_{Y 5 | 1,2} = \frac{SSR(X_3|X_1, X_2)}{SSE(X_1, X_2)} = \frac{78070132}{140967082} = 0.553818,
+$$
+
+$$
+R^2_{Y 6 | 1,2} = \frac{SSR(X_3|X_1, X_2)}{SSE(X_1, X_2)} = \frac{1032359}{140967082} = 0.007323,
+$$
 \end{bluebox}
 
 ## (b)  
@@ -769,21 +829,75 @@ a
 On the basis of the results in part (a), which of the four additional predictor variables is best? Is the extra sum of squares associated with this variable larger than those for the other three variables?
 
 \begin{bluebox}
-a
+Based on the results of (a), we would consider $X_5$ to be the best variable to add to a model already containing $X_1$ and $X_2$ if our objective is to explain as much of the variation in $Y$ as we can. The extra sum of squares is indeed much larger than the extra sum of squares for the other variables undergoing the same procedure. 
 \end{bluebox}
 
 ## (c)  
 
 Using the $F$ test statistic, test whether or not the variable determined to be best in part (b) is helpful in the regression model when X1 and X2 are included in the model; $\alpha=0.01$. State the alternatives, decision rule, and conclusion. Would the $F$ test statistics for the other three potential predictor variables be as large as the one here? Discuss.
 
+```{r}
+# Critical F value:
+q6c_F <- qf(0.99, 3, 440)
+cat("Critical F:", q6c_F)
+```
+
 \begin{bluebox}
-a
+Using the coefficients of partial determination, we deemed $X_5$ best. Let's now test whether it is helpful to include $X_5$ in a model containing $X_1$ and $X_2$:
+
+$$
+H_0: \beta_5 = 0
+$$
+
+$$
+H_1: \beta_5 \neq 0
+$$
 \end{bluebox}
+
+We will execute a partial F test, and decide to reject the null hypothesis if we find a p-value less than $\alpha = 0.01$ or if we find a test statistic in excess of the critical F value: $F_{0.99, 3, 440} = 3.826$. Our test statistic will be:
+
+$$
+F_{\text{test}} = \frac{(SSR_{X_5| X_1, X_2})/1}{MSE_{X_1,X_2,X_5}} =  \frac{78070132}{140444} = 555.8815
+$$
+
+The p-value associated with this test is extremely small, and we will reject the null hypothesis in favor of the conclusion that it is helpful to include $X_5$ in a model containing just $X_1$ and $X_2$. We would not find the test statistic for the other predictors to be as large as the one we found here because the numerator extra residual sum of squares introduced by the new predictor would be smaller than for $X_5$ with the denominator remaining the same, leading to a smaller test statistic.
 
 ## (d) 
 
 Conduct an appropriate test using level of significance 0.05 to assess whether predictors $X_3,$ $X_4,$ and $X_6$ can be simultaneously dropped from an MLR model containing the six predictors ($X1-X6$). State the null and alternative hypotheses, test statistic, decision rule, and conclusion.
 
+```{r}
+q6d_crit_f <- qf(0.95, 3, 433)
+cat(q6d_crit_f)
+```
+
 \begin{bluebox}
-a
+For this question, for the model $Y_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + \beta_3X_{i3} + \beta_4X_{i4} + \beta_5X_{i5} + \beta_6X_{i6} + \epsilon_i$, we want to know whether the predictors $X_3$, $X_4$, $X_6$ are simultaneously $0$. So, we can formulate our test as:
+
+$$
+H_0: \beta_3 = \beta_4 = \beta_6 = 0, \text{ versus }
+$$
+
+$$
+H_1: \text{At least one of } \beta_3, \beta_4, \beta_6 \neq 0,
+$$
+
+Which is equivalent to a partial F test with test statistic given by:
+
+$$
+F = \frac{
+(SSE_{(X_1, X_2, X_5)} - SSE_{\text{Full}})/3 
+}{
+SSE_{\text{Full}}/(434)
+}
+=
+\frac{
+( (60812180 + 230467 + 215515 +1638788)- 60812180)/3 
+}{
+60812180/434
+} 
+= 4.9595
+$$
+
+We will compare our test statistic to a critical value for F, this time that critical value is $F_{0.95, 3, 433} = 2.62$ if we specify a significance level of $\alpha = 0.05$ for our test. We find our test statistic to exceed the critical value. Therefore, we can reject the null hypothesis which stated $\beta_3 = \beta_4 = \beta_6 = 0$, therefore we have evidence that at least one of the corresponding predictors contributes to the model which includes $X_1, X_2, \text{ and } X_5$, so the predictors $X_3$, $X_4$, and $X_6$ cannot be simultaneously dropped from the model.
 \end{bluebox}
