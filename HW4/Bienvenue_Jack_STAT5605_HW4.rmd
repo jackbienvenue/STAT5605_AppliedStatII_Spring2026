@@ -380,16 +380,12 @@ So, we can actually express $R^2_{(X_1, X_2)}$ directly in terms of $\left(R^2_{
 Empirically verify the relationship obtained in (ii) using the data given in this problem.
 
 \begin{bluebox}
-Let's verify that the relationship from part (b) holds for this particular example by calculating $R^2(X_1,X_2)$ and $(R^2(X_1), R^2_{Y2|1})$ for this data set:
+Let's verify that the relationship from part (b) holds for this particular example by calculating $R^2(X_1,X_2)$ using the derived relationship for this data set:
 
 $$
-R^2(X_1,X_2) =     , \text{ and }
+R^2(X_1,X_2) = R^2_{Y2|1}(1-R^2(X_1)) + R^2(X_1) = 0.84018(1-0.97340) +0.97340 = 0.99575,
 $$
-
-$$
-R^2_{Y2|1} =         .
-$$
-So, we find that RELATIONSHIP!
+Which is precisely the same result as when we calculated the value in Part (a).
 
 \end{bluebox}
 
@@ -397,18 +393,30 @@ So, we find that RELATIONSHIP!
 
 Compute $r_{YX_2\cdot X_1}$.  What is the relationship between $R^2_{Y2|1}$ and $r_{YX_2\cdot X_1}$?
 
+```{r}
+# Compute r_{YX_2\cdot X_1}$:
+## Find residual terms:
+res_Y <- resid(lm(y ~ x1, data = q2_df))
+res_X2 <- resid(lm(x2 ~ x1, data = q2_df))
+
+## Calculate correlation:
+q2_d_cor <- cor(res_Y, res_X2)
+cat(q2_d_cor)
+```
+
 \begin{bluebox}
-Lets compute $r_{YX_2\cdot X_1}$:
+Let's compute $r_{YX_2\cdot X_1}$:
 
 $$
-r_{YX_2\cdot X_1} = , \text{ and }
+r_{YX_2\cdot X_1} = Corr(\hat{\epsilon}_{Y|X1},\hat{\epsilon}_{X_2|X_1}),
 $$
+Which we can compute in R to find:
 
 $$
-r_{YX_2\cdot X_1},
+r_{YX_2\cdot X_1} = 0.9166
 $$ 
 
-So, these two quantities are related by RELATIONSHIP!
+So, these two quantities are related by the relationship $R^2_{Y2|1}$ = $r^2_{YX_2\cdot X_1},$ as we can see $R^2_{Y2|1} = 0.84018 = (0.9166)^2 = r^2_{YX_2\cdot X_1}$.
 
 \end{bluebox}
 
