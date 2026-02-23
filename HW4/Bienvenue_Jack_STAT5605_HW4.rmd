@@ -674,12 +674,6 @@ An endocrinologist was interested in exploring the relationship between the leve
 steroid <- read.table("./steroid_level.txt", header=TRUE)
 str(steroid)
 nrow(steroid) 
-steroid$x2=steroid$x^2
-PR5 <- lm(y~x+x2,data=steroid)
-summary(PR5)
-new_x_value <- data.frame(x = 15, x2=225)
-predicted_value2 <- predict(object = PR5, newdata = new_x_value, interval="prediction", level=0.99)
-print(predicted_value2)
 ```
 
 ## (a)  
@@ -687,25 +681,52 @@ print(predicted_value2)
 Fit regression model $Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \epsilon$. Plot the fitted regression function and the data. Does the quadratic regression function appear to be a good fit here? Find $R^2$.
 
 ```{r, fig.width = 8, fig.height = 5, fig.cap = "F Steroid Level Regression"}
+# Add new variable
+steroid$x2=steroid$x^2
+
 # Fit regression model:
-
-# Plot fitted regression fxn with data:
-
+PR5 <- lm(y~x+x2,data=steroid)
+PR5_summary <- summary(PR5)
 
 # Calculate R^2
+q5_a_r2 <- PR5_summary$r.squared
+
+# Plot fitted regression fxn with data:
+point_color  <- "forestgreen"
+line_color   <- "orange3"
+point_size   <- 3
+line_size    <- 1.2
+base_font    <- 14
+
+ggplot(steroid, aes(x = x, y = y)) +
+  geom_point(color = point_color, size = point_size, alpha = 0.85) +
+  stat_smooth(method = "lm", formula = y ~ x + I(x^2), se = FALSE,
+    color = line_color, linewidth = line_size) +
+  labs(title = "Steroid Level in Females",
+    subtitle = paste0("R² = ", round(q5_a_r2, 3), ", subjects aged 8-25, 
+                      quadratic model fit on age"),
+    x = "Age (Years)", y = "Steroid Level") +
+  theme_classic(base_size = base_font) +
+  theme(plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(margin = margin(b = 10)),
+    axis.title = element_text(face = "bold"),
+    plot.margin = margin(15, 15, 15, 15))
 ```
   
 \begin{bluebox}
-The regression function does (not?) appear to be a good fit here.
+The regression function does appear to be a good fit here. We seem to capture the shape of the point cloud quite well. However, our sample size is small and our age range ends at only age $25$, so it is possible that this shape of fit does not extend well globally to females of ages outside this range (for instance, it may be possible that levels of this steroid remain higher on average past age 25 than this model would suggest). Alternatively, another model like a two-piece piecewise linear (in X) model may provide a fit that better reflects the nature of the hormone level. Regardless, the scatter plot does not provide any reason to reject its fit to this batch of data.
 
-We still \emph{can} calculate $R^2$ for this example, but its interpretation is no longer valid as our model is no longer linear in $X_i$'s. The $R^2$ value is $.$.
+We still \emph{can} calculate $R^2$ for this example, even though the model is not linear in $X$, because the model is still linear in all Beta coefficients. We should watch out for $R^2$ in the future, as some othe non-linear fit regression models truly are not linear models and $R^2$ may not apply. The $R^2$ value here is $0.814$ for the full model, which means that $81.4\%$ of the variance in steroid level can be attributed to variations in subject age.
 \end{bluebox}
 
 ## (b) 
 
 ```{r}
 # Perform hypothesis test
+q5_intercept_only <- lm(y ~ 1, data = steroid)
 
+# Run test
+anova(q5_intercept_only, PR5)
 ```
 
 Test whether or not there is a regression relation; use $\alpha=0.01$. State the alternatives, decision rule, and conclusion. What is the P-value of the test?
@@ -714,16 +735,16 @@ Test whether or not there is a regression relation; use $\alpha=0.01$. State the
 To test for whether there is a regression relation between $Y$ and $X$ \& $X^2$, we can use the hypotheses:
 
 $$
-H_0: , \text{ and }
+H_0: \beta_1 = \beta_2 = 0, \text{ and }
 $$
 
 $$
-H_1: , \text{ and }
+H_1: \text{At least one of } \beta_1, \beta_2  \neq 0 ,
 $$
 
-After performing our test using a prespecified significance level of $\alpha = 0.01$, we find...
+We can use a test statistic $F = \frac{(SSR_\text{reduced} - SSR_{\text{full}})/ 2}{SSR_\text{full}/ 24} = 52.633$ and compare it against a critical value of $F_{0.99, \; 2, \; 24} = 5.614$, as our null hypothesis imposes two restrictions and our denominator degrees of freedom are $n-p$, where $p=3$ is the number of coefficients estimated by the model (also, $n=27$ is the number of observations). After performing our test using a pre-specified significance level of $\alpha = 0.01$, we find a very small p-value and large test statistic.
 
-Therefore, we have evidence to suggest that there is (NOT) a regression relation between $Y$ and $X$ \& $X^2$.
+Therefore, we have evidence to suggest that there is indeed a regression relation between $Y$ and $X$ \& $X^2$. Note that this does not necessarily guarantee that \emph{both} predictors are \emph{useful}, simply that a regression relationship exists for the full model as specified by the problem. 
 \end{bluebox}
 
 ## (c) 
@@ -732,11 +753,13 @@ Predict the steroid levels of females aged 15 using a 99 percent prediction inte
 
 ```{r}
 # Calculate prediction interval (99%)
-
+new_x_value <- data.frame(x = 15, x2=225)
+predicted_value2 <- predict(object = PR5, newdata = new_x_value, interval="prediction", level=0.99)
+print(predicted_value2)
 ```
 
 \begin{bluebox}
-We can use a $99\%$ prediction interval to predict the steroid levels in $15$ year old girls, which ends up being $()$. This interval suggests that ...
+We can use a $99\%$ prediction interval to predict the steroid levels in $15$ year old girls, which ends up being $(10.97342, 29.30242)$. This interval suggests that we can be 99\% confident that this interval would contain the true value of the steroid level for a 15-year-old girl (who was not a subject in our collected data for modeling). In essence, the prediction interval represents a range for which we can expect the response variable, steroid level, to fall in for a new observation, a girl/woman of $x$ years of age.
 \end{bluebox}
 
 ## (d)  
@@ -745,49 +768,88 @@ Test whether the quadratic term can be dropped from the model; use $\alpha=0.01$
 
 ```{r}
 # Perform test
+## Define quadratic term free model:
+q5_no_quadr <- lm(y ~ x, data = steroid)
+
+## Perform partial F-test:
+anova(q5_no_quadr, PR5)
 ```
 
 \begin{bluebox}
 We can test whether the quadratic term can be dropped from the model using hypotheses:
 
 $$
-H_0: \text{ and }
+H_0: \beta_2 = 0  \text{ and }
 $$
 
 $$
-H_A: ,
+H_A: \beta_2 \neq 0 ,
 $$
 
-Which result in a p-value of $,$ which we compare to our prespecified significance level $\alpha = 0.01$ to find that ...
+Our test statistic will be $F = \frac{ (SSR_{\text{reduced}} - SSR_\text{full}) / 1}{SSR_\text{full} / 24}  = 25.453$ which should be compared to critical value $F_{0.99, \; 1, \; 24} = 7.823$.
 
-Therefore, we can conclude ...
+We get a very small p-value which we compare to our pre-specified significance level $\alpha = 0.01$ (and a moderate test statistic compared to our critical F value) to find that the quadratic term should \textbf{not} be dropped from this model (more specifically, its true regression coefficient is not zero).
 \end{bluebox}
 
 ## (e)  
 
 Obtain the residuals and plot them against the fitted values and against $x$ on separate graphs. Also prepare a normal probability plot. What do your plots show?
 
-```{r, fig.cap ="a"}
+```{r}
+# Data for resid plots
+steroid$fitted <- fitted(PR5)
+steroid$resid  <- resid(PR5)
+steroid$stdres <- rstandard(PR5) 
+
+# plotting params
+point_color <- "forestgreen"
+line_color  <- "orange3"
+base_font   <- 14
+point_size  <- 3
+```
+
+```{r, fig.cap ="Residuals vs Fitted Values, Full Model"}
 # Plot of residuals vs fitted values
-
+ggplot(steroid, aes(x = fitted, y = resid)) +
+  geom_point(color = point_color, size = point_size, alpha = 0.85) +
+  geom_hline(yintercept = 0, color = line_color, linewidth = 1) +
+  labs(title = "Residuals vs Fitted Values", x = "Fitted Values",
+       y = "Residuals") +
+  theme_classic(base_size = base_font) +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
 ```
 
 
-```{r, fig.cap ="b"}
+```{r, fig.cap ="Residuals versus Age"}
 # Plot of residuals vs x
-
+ggplot(steroid, aes(x = x, y = resid)) +
+  geom_point(color = point_color, size = point_size, alpha = 0.85) +
+  geom_hline(yintercept = 0, color = line_color, linewidth = 1) +
+  labs(title = "Residuals vs Age", x = "Age (Years)", y = "Residuals") +
+  theme_classic(base_size = base_font) +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
 ```
 
-```{r, fig.cap ="c"}
+```{r, fig.cap ="Normal Quantile-Quantile Plot, Full Model (Errors)"}
 # Normal probability plot
+ggplot(steroid, aes(sample = stdres)) +
+  stat_qq(color = point_color, size = point_size) +
+  stat_qq_line(color = line_color, linewidth = 1) +
+  labs(title = "Normal Q-Q Plot of Standardized Residuals",
+       x = "Theoretical Quantiles", y = "Sample Quantiles") +
+  theme_classic(base_size = base_font) +
+  theme(plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "bold"))
 ```
 
 \begin{bluebox}
-Figure . shows...
+Figure 2 shows residuals distributed evenly about 0. There are varying concentrations of points (likely due to many steroid level readings being higher within the sample), but there do not appear to be any particular concerning trends as far as a violation of homoscedasticity is concerned. The concentration of points towards high fitted values makes sense given that the steroid level only appears to be low among the youngest girls in the sample, a minority of the subjects. indicating that for most of the possible age range, we would expect fitted values to be relatively high. 
 
-Figure . shows...
+Figure 3 shows the residuals against the predictor, age. We do observe from fluctuations in residuals as age changes. For instance, around ages 17-22, we notice that our model underpredicts hormone levels. We also notice relatively very large residuals for the age range around 12-13, which may be related to underlying biological reasons for when production of this hormone increases in females. Our sample size of 27 is not tiny, but it may not be large enough to tell whether these effect are consistent, but they suggest that is it possible that our model's structure is not the most appropriate or that other confounding factors (e.g. weight, certain blood test signatures, etc.) may help predict hormone levels better, perhaps especially during certain age ranges. This plot does not invalidate our model, but it does call into question whether it is appropriate for use for all females in all subsets of ages within this age range. 
 
-Figure . shows...
+Figure 4 shows that the residuals are largely normal in distribution, with some light-tailedness compared to the normal distribution. Therefore, we do not expect to observe as many extreme residuals compared to what we would expect if the residuals were generated from a normal distribution. Perhaps this is related to natural constraints the body puts on hormone production on both the low and high ends. 
 \end{bluebox}
 
 ## (f)  
@@ -795,23 +857,36 @@ Figure . shows...
 Test formally for lack of fit. Control the risk of a Type I error at .01. State the alternatives, decision rule, and conclusion. What assumptions did you make implicitly in this test?
 
 ```{r}
-
+# Check # of distinct values:
+table(steroid$x)
+# Run test for lack of fit:
+## Build model where every age is its own group to find pure error:
+q5f_big_model <- lm(y ~ factor(x), data = steroid)
+## Compare
+anova(q5f_big_model, PR5)
 ```
 
 \begin{bluebox}
 Now we can test for a lack of fit with a significance level $\alpha = 0.01$ and hypotheses:
 
 $$
-H_0: \text{ and }
+H_0: \text{The model is correctly specified} \text{ and, }
 $$
 
 $$
-H_1: 
+H_1: \text{The model is incorrectly specified (we observe lack of fit)}
 $$
 
-Upon running our test, we find...
+For our test, we can use a significance level of $\alpha = 0.01$, and we will use the test statistic:
 
-Our assumptions for this test include...
+$$
+F = \frac{SSE_\text{Lack of Fit} / df_\text{Lack of Fit}}{SSE_\text{Pure Errors} / df_\text{Pure Errors}} = 0.5032,
+$$
+Alongside a critical F value of $F_{0.99, 12,12} = 4.155$. Our test statistic did not exceed our critical value, and our p-value did not fall below our significance threshold. 
+
+Upon running our test, we find that we do not have evidence to reject our null hypothesis which stated that the model is correctly specified (p-value = 0.8758).
+
+Our assumptions for this test include assumption of presence replicated values, independent and normally distributed (with mean 0) errors, and homoscedasticity of errors.
 
 \end{bluebox}
 
@@ -979,7 +1054,10 @@ F = \frac{
 SSE_{\text{Full}}/(434)
 }
 =
-\frac{
+$$
+
+$$
+= \frac{
 ( (60812180 + 230467 + 215515 +1638788)- 60812180)/3 
 }{
 60812180/434
