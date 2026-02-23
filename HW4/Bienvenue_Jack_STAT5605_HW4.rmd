@@ -444,13 +444,11 @@ State the reduced models and write the corresponding R codes for testing whether
 
 ## (a) $\beta_1=\beta_3=0$
 \begin{verbatim}
-mod <- lm(y~x2, data=dat)
-\end{verbatim}
+q3_a_reduced_mod <- lm(y~x2, data=dat)
 
-```{r}
 # Test for beta1=beta3=0:
-
-```
+anova(q3_a_reduced_mod, mod)
+\end{verbatim}
 
 \begin{bluebox}
 To test whether $\beta_1 = \beta_3 = 0$, we must have reduced model:
@@ -459,18 +457,21 @@ $$
     Y_i=\beta_0+\beta_2X_{i2}+\varepsilon_i.
 $$
 
-We find ???????
+For $q = 2$, $p = 4$, and sample size $n$, the appropriate F statistic for this partial F test can be formulated as $$F_{\text{test}} = \frac{(SSE_{\text{reduced}}- SSE_{full}) / 2}{SSE_\text{full}/(n-4)}.$$
+
+The appropriate critical value for the F statistic will be $F_{0.95, \; , 2 \; n-4}$, because we have two restrictions (one on each of $\beta_1, \beta3$) giving two numerator degrees of freedom. Our sample size is unknown, but the full model has four parameters, so the denominator degrees of freedom are $n-4$. 
+
+We could test the hypotheses $H_0: \beta_1 = \beta_3 = 0,$ and $H_1: \text{at least one of } \beta_1, \beta_3 \neq 0 $ by comparing the p-value to the  significance threshold of $\alpha = 0.05$ or by comparing the test statistic to the critical value. The partial F test implementation in R is given in the static code above this blue box.
 \end{bluebox}
 
 ## (b) $\beta_0=0$
 \begin{verbatim}
 dat$x11=dat$x1^2
-mod <- lm(y ~ 0+x1+x2+x11, data=dat)
-\end{verbatim}
+q3_b_reduced_mod <- lm(y ~ 0+x1+x2+x11, data=dat)
 
-```{r}
 # Test for beta0 = 0
-```
+anova(q3_1b_reduced_mod, mod)
+\end{verbatim}
 
 \begin{bluebox}
 To test whether $\beta_0 = 0$, we must have reduced model:
@@ -479,20 +480,30 @@ $$
     Y_i=\beta_1X_{i1}+\beta_2X_{i2}+\beta_3X_{i1}^2+\varepsilon_i.
 $$
 
-We find ???????
+This time around, we are testing whether the intercept should be included in the model.
+
+This will equate to a single linear restriction, and we should therefore compare our test statistic formulated as:
+
+$$
+F_{\text{test}} = \frac{(SSE_{\text{reduced}}- SSE_{full}) }{SSE_\text{full}/(n-4)}.
+$$
+
+And compare it to test statistic $F_{0.95, 1, n-4} $ test statistic (corresponding to significance level $\alpha = 0.05$). In R, we specify an intercept of zero by adding a "0" to the model formulation. We can compared using the anova() method.
+
+We want to test $H_0: \beta_0 = 0,$ versus $H_1: \beta_0 \neq 0$.
+
 \end{bluebox}
 
 ## (c)  $\beta_3=5$
 \begin{verbatim}
 dat$x11=dat$x1^2
 dat$x115=5*dat$x1^2
-mod <- lm(y ~ x1+x2+offset(x115), data=dat)
+q3_c_reduced_mod <- lm(y ~ x1+x2+offset(x115), data=dat)
+
+# Test for beta_3=5
+anova(q3_c_reduced_mod, mod)
+
 \end{verbatim}
-
-```{r}
-# To test whether beta3 = 5,
-
-``` 
 
 \begin{bluebox}
 To test whether $\beta_3 = 5$, we must have reduced model:
@@ -501,14 +512,30 @@ $$
     (Y_i - 5X^2_{i1}) =\beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\varepsilon_i.
 $$
 
-We find ????????
+Now we have a bit more of a special case where we have a slope parameter that we are specifying to be a particular, non-zero value. We can still make this type of partial F test work by transforming the response by offsetting it by the effect of the feature multiplied by its "known" (hypothesized) value and then testing the new model against the full model.
+
+Like the previous question, we have a single linear restriction and we can calculate a test statistic and compare it to $F_{0.95, 1, n-4}$ if we again use a $0.05$ significance level. Our hypotheses here would be:
+
+$$
+H_0: \beta_3 = 5,
+$$
+
+$$
+H_1: \beta_3 \neq 5.
+$$
+
 \end{bluebox}
 
 ## (d)  $\beta_0=10$
 
-```{r}
-# Test for \beta_0 = 10
-```
+\begin{verbatim}
+dat$y_minus_10 <- dat$y - 10
+q3_d_reduced_mod <- lm(y_minus_10 ~ x1+x2+x11 -1, data=dat)
+      # "-1" above removes intercept inclusion in model (10 is our intercept 
+      # under null hypothesis)
+# Test for beta_3=5
+anova(q3_d_reduced_mod, mod)
+\end{verbatim}
 
 \begin{bluebox}
 To test whether $\beta_0 = 10$, we must have reduced model:
@@ -517,40 +544,69 @@ $$
 (Y_i - 10) = \beta_1X_{i1}+\beta_2X_{i2}+\beta_3X_{i1}^2+\varepsilon_i.
 $$
 
-We find ????????
+Similar to last time, we have a known parameter value and must transform our response. This time we simply reduce the responses by 10 units and run the regression on the other variables. For $0.05$ significance level, we will compare our single-restriction (1 numerator df, $n-4$ denominator df) test statistic to $F_{0.95, \; 1, \; n-4}$ for results of the test:
+
+$$
+H_0: \beta_0=10,
+$$
+
+$$
+H_1: \beta_0 \neq 10.
+$$
+
 \end{bluebox}
 
 ## (e) $\beta_1=\beta_2$
 
-```{r}
-# Test for beta1 = beta2
+\begin{verbatim}
+# Define model for this problem:
+q3_e_reduced_mod <- lm(y ~ (x1+x2) + x11, data=dat)
 
-```
+# Test for beta_1 = \beta_2
+anova(q3_e_reduced_mod, mod)
+
+\end{verbatim}
 
 \begin{bluebox}
 To test whether $\beta_1 = \beta_2$, we must have reduced model:
 
 $$
-    Y_i=\beta_0+\beta_3X_{i1}^2+ \beta_4(X_{i1}+X_{i2}) + \varepsilon_i.
+  Y_i=\beta_0+\beta_3X_{i1}^2+ \beta_4(X_{i1}+X_{i2}) + \varepsilon_i.
 $$
 If $\beta_1$ is truly equal to $\beta_2$ (or if this modeling relationship is better than the ordinary full model), we should find that this model performs better than the full model under a partial F test. 
 
+We restrict two coefficients but do not force them each to equal a particular value, so our numerator degrees of freedom are one, leading us to end up comparing our eventual attained test statistic to critical F value $F_{0.95, 1, n-4}$ (for significance level 0.05).
 \end{bluebox}
 
 ## (f) $\beta_1=\beta_3$
 
-```{r}
-# Test for beta1 = beta3
+\begin{verbatim}
+# Define new model for testing:
+q3_f_reduced_mod <- lm(y ~ (x1+x11) + x2, data=dat)
 
-```
+# Test for beta_1 = \beta_3
+anova(q3_f_reduced_mod, mod)
+\end{verbatim}
 
 \begin{bluebox}
 To test whether $\beta_1 = \beta_3$, we must have reduced model:
 
 $$
-    Y_i = \beta_2X_{i2}+ \beta_5(X_{i1} +X_{i1}^2)+\varepsilon_i,
+    Y_i = \beta_0 + \beta_2X_{i2}+ \beta_5(X_{i1} +X_{i1}^2)+\varepsilon_i,
 $$
 Which, if preferable to the full model, should perform better under a partial F-test.
+
+We can evaluate whether this is true using a test of the hypotheses:
+
+$$
+H_0: \beta_1 = \beta_3, 
+$$
+
+$$
+H_1: \beta_1 \neq \beta_3,
+$$
+
+If we were to use a significance level of $\alpha = 0.05$, we would want to compare our test statistic to a critical F value of $F_{0.95, \; 1, \; n-4}$ because our null hypothesis restricts our linear coefficients to each other, but not to a particular value, only amounting to a single linear restriction.
 
 \end{bluebox}
 
