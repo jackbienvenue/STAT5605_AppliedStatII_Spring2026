@@ -61,7 +61,7 @@ Obs         y     Value Mean Predict  Residual  Residual Residual         H
   \end{bluebox}
 
 ## (ii)  
-  For observation 10, compute the {\it externally} Studentized residual $t_{10}$.
+  For observation 10, compute the \textit{externally} Studentized residual $t_{10}$.
 
   \begin{bluebox}
   
@@ -102,39 +102,20 @@ n <- nrow(HW5PR2)
 n
 PR2 <- lm(formula = Y ~ X, data=HW5PR2)
 resid <- PR2$residuals
-plot(HW5PR2$X, resid, pch = 20, main = "Residual vs. Predictor plot", xlab = "X", ylab = "residuals")
-shapiro.test(resid)
-ks.test(resid,"pnorm")
-#c1 breusch pagan test
-sse <- anova(PR2)[2, 2]
-HW5PR2$resid <- PR2$residuals
-HW5PR2$resid_sq <- HW5PR2$resid^2
-diag_bp <- lm(resid_sq~X, data = HW5PR2)
-# anova(diag_bp)
-ssr_star <- anova(diag_bp)[1, 2]
-chi_bp = (ssr_star/2)/(sse/n)^2
-chi_bp
-qchisq(0.95, 1)
-pchisq(chi_bp, 1, lower.tail = FALSE)
-#c2 Chen C.F. test
-r_stand <- rstandard(PR2)
-hii <- influence(PR2)$hat
-HW5PR2$ui <- (10/8)*(1-hii)*r_stand^2
-diag_ch <- lm(ui~X, data = HW5PR2)
-s_chen <- anova(diag_ch)[1, 2]/2
-s_chen
-qchisq(0.95, 1)
-pchisq(s_chen, 1, lower.tail = FALSE)
 ```
-
 
 ## (a) 
 
 Plot the residual $e_i$ against $X_i$ to ascertain whether any departures from the SLR model are evident. What is your conclusion? 
 
+```{r plot1, fig.cap="Question 2 Residuals versus Predictor Plot"}
+plot(HW5PR2$X, resid, pch = 20, main = "Residual vs. Predictor plot", 
+     xlab = "X", ylab = "residuals")
+```
+  
   \begin{bluebox}
   
-  
+  We plotted the residuals against the predictor in Figure \@ref(fig:plot1). In the plot, we observe that the residuals have a funnel shape, narrowing as the plot moves to the right. This may indicate that we have an issue with our homoscedasticty assumption, suggesting that variance in the errors may decrease for increasing $X$. There are no very large residuals in this set, and the residuals appear to be centered around $0$, although we may have fewer residuals close to zero than we might expect (this statement would have to be proven though). The plot does not give us reason to refute a linear relationship as we do not observe non-linear shapes in the residual plot. We should note that while there appears to be meaningful trends in the residuals in relation to the value of $X$, our sample size is very modest ($n=10$) and patterns at this sample size may be spurious, underdeveloped, and/or misleading.
   
   \end{bluebox}
   
@@ -142,11 +123,51 @@ Plot the residual $e_i$ against $X_i$ to ascertain whether any departures from t
 
 Test the normality of the residuals using the Shapiro-Wilk Test and Kolmogorov-Smirnoff test, respectively. (Note that these tests are available in R; see Example 4 for relevant R code.) What do you conclude? 
 
+```{r}
+# Shapiro-Wilk Test:
+shapiro.test(resid)
+
+# Kolmogorov-Smirnoff Test:
+ks.test(resid, "pnorm")
+```
 
   \begin{bluebox}
   
+  \textbf{Shapiro-Wilk Test}
   
+  The Shapiro-Wilk Test is used to test the normality of residuals coming from independent observations after model fitting. It is most often used for small sample sizes.
   
+  We will assume that our observations for residuals are independent (this is not necessarily true as \textit{errors should be independent}, but residuals are not necessarily independent). While the Shapiro-Wilk test is best used for continuous data, we will attempt to apply it to our problem. We will pre-specify a significance level of $\alpha = 0.05$ and use the following hypotheses:
+  
+  $$
+  H_0: \text{The sample comes from a normally-distributed population, and}
+  $$
+  
+  $$
+  H_1: \text{The sample does not come from a normally-distributed population.}
+  $$
+  
+  We find a p-value of 0.2632 attained by our test. This means that we do not have evidence reject the null hypothesis which stated that the sample comes from a normally-distributed population. So, from this test we will not refute our normality assumption. 
+  
+  \textbf{Kolmogorov-Smirnoff Test}
+  
+  The Kolmogorov-Smirnoff Test is another test for normality, and it is a nonparametric test which compares the empirical CDF of data from a sample to a CDF from a hypothesized distribution. The K-S test is typically used for moderate-to-large sample sizes. Our sample size of $n=10$ is decidedly more small than we would desire for using this test. We can try to run the test, making assumptions of independence of observations again. Like the Shapiro-Wilk test, it is best to have continuous response data. 
+  
+  Let's pre-specify a significance level of $\alpha = 0.05$, and run the test under the hypotheses:
+  
+  $$
+  H_0: \text{The residuals come from a N(0,1) distribution, and}
+  $$
+  
+  $$
+  H_1: \text{The residuals do not come from a N(0,1) distribution. }
+  $$
+  
+  Note that we specify a N(0,1) distribution in particular becuase the ``ks.test(resid, ``pnorm")" execution of the test assumes a N(0,1) distribution. 
+  
+  We find a p-value of 0.3775 for our test, which does not provide evidence to reject the null hypothesis. Therefore, we cannot refute that the residuals are standard normal distributed by the results of this question. 
+  
+  Note that while we failed to refute normality assumptions in this problem, it does not necessarily mean that the data is normal or that the residuals are truly N(0,1) distributed. Simply, we do not have the evidence to disprove these assumptions. Our tests were somewhat poorly employed, so we may be wary of their results. 
   \end{bluebox}
   
 ## (c) 
@@ -157,9 +178,38 @@ In order to determine whether or not the error variance varies with the level of
 
 The Breusch-Pagan (BP) test assuming that  $\log \sigma^2_i = \gamma_0 + \gamma_1 X_i$ is applicable; and
 
+```{r}
+# BP Test Implementation:
+sse <- anova(PR2)[2, 2]
+HW5PR2$resid <- PR2$residuals
+HW5PR2$resid_sq <- HW5PR2$resid^2
+diag_bp <- lm(resid_sq~X, data = HW5PR2)
+# anova(diag_bp)
+ssr_star <- anova(diag_bp)[1, 2]
+chi_bp = (ssr_star/2)/(sse/n)^2
+print(paste("test statistic:", chi_bp))
+print(paste("critical chisq:", qchisq(0.95, 1)))
+print(paste("test statistic p-value:", pchisq(chi_bp, 1, lower.tail = FALSE)))
+```
+
   \begin{bluebox}
   
+  The Breusch-Pagan (B-P) Test tests for heteroscedasticity in a linear regression model. Earlier, we were worried about heteroscedasticity when we looked at our residuals versus predictor values plot. 
   
+  The B-P test relies on the assumption that errors are normally distributed and that observations are independent
+  
+  Our hypotheses are:
+  
+  $$
+  H_0: \text{Residuals observe homoscedasticity, and }
+  $$
+
+  $$
+  H_1: \text{Residuals are heteroscedastic.}
+  $$
+  Before running our test, we will decide upon a significance level threshold of $\alpha = 0.05$. 
+  
+  Upon running our test, we find that we cannot reject the null hypothesis which stated that the residuals are homoscedastic ($\text{p-value}= 0.309$). Despite what we observed in our residual plot, this test does not provide evidence that an assumption of homoscedasticity is violated.
   
   \end{bluebox}
 
@@ -167,9 +217,33 @@ The Breusch-Pagan (BP) test assuming that  $\log \sigma^2_i = \gamma_0 + \gamma_
 
 The test of Chen, C.F. (1993) assuming Var$(\epsilon_i)=\sigma^2 \exp( \lambda X_i)$.
 
+```{r}
+# C.F. Chen Test Implementation:
+r_stand <- rstandard(PR2)
+hii <- influence(PR2)$hat
+HW5PR2$ui <- (10/8)*(1-hii)*r_stand^2
+diag_ch <- lm(ui~X, data = HW5PR2)
+s_chen <- anova(diag_ch)[1, 2]/2
+print(paste("Test statistic:", s_chen))
+print(paste("Critical chi-squared value:", qchisq(0.95, 1)))
+print(paste("Corresponding p-value:", pchisq(s_chen, 1, lower.tail = FALSE)))
+```
+
   \begin{bluebox}
   
+  C.F. Chen's Test is another test for homoscedasticity. This test requires the assumption of independent, normally-distributed errors.
   
+  Our hypotheses for this test are the same as for the prior question:
+  
+  $$
+  H_0: \text{Residuals observe homoscedasticity, and }
+  $$
+
+  $$
+  H_1: \text{Residuals are heteroscedastic.}
+  $$
+  
+  Here, the results of the test are identical to the B-P test. Again we will fail to reject the null hypotheses.
   
   \end{bluebox}
 
@@ -177,6 +251,7 @@ The test of Chen, C.F. (1993) assuming Var$(\epsilon_i)=\sigma^2 \exp( \lambda X
 
 \newpage
 # Problem (3) 
+
 For the data, HW3PR1.txt, given in Problem 1 of Homework 3, answer the following questions.
 
 ```{r}
@@ -216,10 +291,27 @@ vif(mod3)
 
 Divide the 50 cases into two groups, placing the 25 cases with the smallest fitted values $\hat{Y}_i$ into group 1 and the other 25 cases into group 2. Conduct the Brown-Forsythe (BF) test for constancy of the error variance using $\alpha=0.025$. State the hypotheses and your conclusion.
 
+```{r}
+
+```
 
   \begin{bluebox}
   
+  The Brown-Forsythe Test is a test to evaluate...
   
+  The assumptions required for the test are ...
+  
+  The hypotheses for this test are:
+  
+  $$
+  H_0:
+  $$
+  
+  $$
+  H_1:
+  $$
+  
+  From our test, we find ...
   
   \end{bluebox}
   
@@ -228,9 +320,17 @@ Divide the 50 cases into two groups, placing the 25 cases with the smallest fitt
 
 Obtain the externally Studentized residuals and identify any outlying $Y$ observations. Use the Bonferroni outlier test procedure with $\alpha=0.05$ (i.e., using $\alpha/50$ for each observation). State the decision rule and conclusion.  
 
+
+```{r}
+# Bonferroni outlier test:
+
+
+```
   \begin{bluebox}
   
+  The Bonferroni outlier test procedures seeks to identify 
   
+  In the Bonferroni outlier test procedure, we effectively split the significance level between observations ... ELABORATE on this
   
   \end{bluebox}
   
@@ -239,9 +339,13 @@ Obtain the externally Studentized residuals and identify any outlying $Y$ observ
 
 The cases are given in consecutive weeks. Prepare a time plot for of the residuals. Is there any indication that the error terms are correlated? Discuss. 
 
+```{r plot2, fig.cap="Time Series Plot of Residuals"}
+
+```
+
   \begin{bluebox}
   
-  
+  Reviewing a time series plot of residuals in the model, we find...
   
   \end{bluebox}
   
@@ -250,9 +354,24 @@ The cases are given in consecutive weeks. Prepare a time plot for of the residua
 
 The observations are listed in time order. Assume that the MLR model is appropriate. Test whether or not positive correlation is present; using $\alpha=0.05$. State the hypotheses and conclusion. 
 
+```{r}
+
+```
+
   \begin{bluebox}
   
+  Since the observations are ordered by time, we are interested in whether...
   
+  We can use a ... TEST
+  
+  We will use hypotheses:
+  
+  $$
+  H_0: \text{ , and}
+  $$
+  $$
+  H_1: \text{ }
+  $$
   
   \end{bluebox}
   
@@ -303,9 +422,56 @@ Find the three variance inflation factors. Do they indicate that a serious multi
 
 For the data $(X_1,X_2,Y)=(-1,-1,7.2)$, $(-1,0,8.1)$, $(0,0,9.8)$. Suppose that we fit a MLR model with an intercept to this data set. In this case,  $n=3$, $k=2$, and $p=3$. Compute the hat matrix ${\bf H}={\bf X} ({\bf X}' {\bf X})^{-1} {\bf X}'$.  What are $h_{ii}$, $\hat{Y}_i$, and $e_i$ for $i=1,2,3$? 
 
+``` {r}
+# Dataframe for data
+q4_df <- data.frame(
+  X1 = c(-1, -1, 0),
+  X2 = c(-1,  0, 0),
+  Y  = c(7.2, 8.1, 9.8)
+)
+
+# MLR model fit
+q4_mlr_model <- lm(Y ~ X1 + X2, data = q4_df)
+
+# build the design matrix X
+X <- model.matrix(q4_mlr_model)
+
+# find hat matrix
+H <- X %*% solve(t(X) %*% X) %*% t(X)
+
+# print hat matrix
+H   
+
+# influence matrix
+h_ii <- diag(H)
+
+# fitted values
+yhat <- fitted(q4_mlr_model)
+resid <- residuals(q4_mlr_model)
+
+# give each observation its own df
+obs_1 <- data.frame(h_ii = h_ii[1], yhat = yhat[1], resid = resid[1])
+obs_2 <- data.frame(h_ii = h_ii[2], yhat = yhat[2], resid = resid[2])
+obs_3 <- data.frame(h_ii = h_ii[3], yhat = yhat[3], resid = resid[3])
+
+# Report
+cat("Observation 1 influence:", obs_1$h_ii,
+    "; fitted value:", obs_1$yhat,
+    "; residual:", obs_1$resid, "\n")
+
+cat("Observation 2 influence:", obs_2$h_ii,
+    "; fitted value:", obs_2$yhat,
+    "; residual:", obs_2$resid, "\n")
+
+cat("Observation 3 influence:", obs_3$h_ii,
+    "; fitted value:", obs_3$yhat,
+    "; residual:", obs_3$resid, "\n")
+
+```
+
   \begin{bluebox}
   
-  
+  We are fitting an MLR model with coefficients $\beta_0, \beta_1, \beta_2$ to a dataset with only three points. Therefore, our regression plane will pass through each of the points because a plane can always pass through three points in three-dimensional space. We find all observations to have an influence of $1$, and fitted values equal to their $Y$ value (leaving all residuals as $0$).
   
   \end{bluebox}
 
@@ -373,7 +539,7 @@ What are the "Std Error" and  "T Stat" for $X_1$?
 
 ### (ii) 
 
-It is calculated that the Pearson correlation coefficient  between $X_1$ and $X_2$ is $r=0.65285$.  Obtain ${\rm VIF}_1$ and ${\rm VIF}_2$ for $X_1$ and $X_2$, respectively. Is there any evidence indicating that  a serious multicollinearity problem exists here?  
+It is calculated that the Pearson correlation coefficient  between $X_1$ and $X_2$ is $r=0.65285$.  Obtain ${\rm VIF}_1$ and ${\rm VIF}_2$ for $X_1$ and $X_2$, respectively. Is there any evidence indicating that a serious multicollinearity problem exists here?  
 
   \begin{bluebox}
   
