@@ -1,0 +1,393 @@
+---
+title: "STAT 5605 Homework 5"
+subtitle: "March 8, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+---
+
+
+```{r setup, include=FALSE}
+invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car", "corrplot"), 
+  function(pkg) suppressPackageStartupMessages(library(pkg, 
+                                                character.only = TRUE))))
+```
+
+
+\newpage
+# Problem 1
+
+Continuing Problem 4 from Homework 3, an analysis was performed to study the relationship between three explanatory variables, $X_1$, $X_2$, and $X_3$ and a response variable $Y$ using the following model:
+$$
+Y=\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 +  \epsilon,
+$$
+where $\epsilon \sim N(0,\sigma^2)$ independently for $n$ observations. For this dataset, recall $\mbox{MSE}=0.15306$ with 117 error degrees of freedom.  For observation 10, we have the following SAS output: 
+\begin{verbatim}
+      Dep Var Predicted    Std Error           Std Error  Student  Hat Diag
+Obs         y     Value Mean Predict  Residual  Residual Residual         H
+10     3.1780    2.5816       0.0547    0.5964     0.387    1.540    0.0195
+\end{verbatim}
+
+
+## (i) 
+  Compute $\hat{\sigma}^2_{(10)}$, an estimate of $\sigma^2$ based on the data with the $10^{th}$ observation deleted. [Read Slide 15 of Note 6.]
+  
+  \begin{bluebox}
+  
+  We can compute $\hat{\sigma}^2_{(10)}$ externally by rearranging the expression given by Slide 15 in Note 6:
+  
+  $$
+  (n-k-1)\text{MSE} = (n-k-2)\text{MSE}_{(i)} + \frac{e_i^2}{1-h_{ii}},
+  $$
+  To get an expression for $MSE_{(i)}$, which will estimate $\sigma^2_{(10)}$ here:
+  
+  $$
+  \text{MSE}_{(i)} = \hat{\sigma}^2_{(10)} = \frac{(n-k-1)\text{MSE} - \frac{e_i^2}{1-h_{ii}}}{(n-k-2)} ,
+  $$
+  Now we can substitute in the provided values from the SAS output line and the other problem information. Given that the MLR model has $x$ coefficients, and $n-p = 117$ error degrees of freedom, we can identify $n$ (sample size) and $k$ (number of non-intercept regression coefficients) as $n=121$ and $k= p-1 =4 - 1 = 3$.
+  
+  $$
+  \text{MSE}_{(i)} = \hat{\sigma}^2_{(10)} = \frac{(121-3-1)(0.15306) - \frac{0.5964^2}{1-0.0195}}{(121-3-2)} = 0.151252 ,
+  $$
+  
+  \end{bluebox}
+
+## (ii)  
+  For observation 10, compute the {\it externally} Studentized residual $t_{10}$.
+
+  \begin{bluebox}
+  
+  We can use the other formula from Slide 15 of Note 6 in order to calculate the externally Studentized residual for the tenth observation:
+  
+  $$
+  t_i = e_i\left[ \frac{n-k-2}{\text{SSE}(1-h_{ii}) - e^2_i}  \right]^{1/2}.
+  $$
+  
+  We know that we have nearly all the quantities we need from the prior subquestion, however, let's make sure that we have (or can find) the \text{SSE}. The $\text{SSE}$ is not explicitly included in our given output, so we can quickly calculate it as $\text{SSE} = \text{MSE}(n-k-1) = 0.15306({121-3-1}) = 17.90802$.
+  
+  So, our externally Studentized 10$^{\text{th}}$ residual calculation becomes:
+  
+  $$
+  t_i = 0.5964\left[ \frac{121-3-2}{(17.90802)(1-0.0195) - 0.5964^2}  \right]^{1/2} = 1.5487.
+  $$
+  
+  \end{bluebox}
+
+
+\newpage
+# Problem 2 
+
+A substance used in biological and medical research is shipped by airflight to users in cartons of 1,000 ampules. The data below, involving 10 shipments, were collected on the number of times the carton was transferred from one aircraft to another  over the shipment route ($X$) and the number of ampules found to be broken upon arrival ($Y$). Suppose that we fit a simple linear regression (SLR) model of $Y$ on $X$ to this data set.
+
+\begin{center}
+\begin{tabular}{rcccccccccc} \hline
+$i$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\ \hline
+$X_i$: & 1 & 0 & 2 & 0 & 3 & 1 & 0 & 1 & 2 & 0 \\
+$Y_i$: & 16 & 9 & 17 & 12 & 22 & 13 & 8 & 15 & 19 & 11 \\ \hline
+\end{tabular}
+\end{center}
+
+```{r}
+HW5PR2 <- read.table("./HW5PR2.txt", header=TRUE)
+str(HW5PR2)
+n <- nrow(HW5PR2)
+n
+PR2 <- lm(formula = Y ~ X, data=HW5PR2)
+resid <- PR2$residuals
+plot(HW5PR2$X, resid, pch = 20, main = "Residual vs. Predictor plot", xlab = "X", ylab = "residuals")
+shapiro.test(resid)
+ks.test(resid,"pnorm")
+#c1 breusch pagan test
+sse <- anova(PR2)[2, 2]
+HW5PR2$resid <- PR2$residuals
+HW5PR2$resid_sq <- HW5PR2$resid^2
+diag_bp <- lm(resid_sq~X, data = HW5PR2)
+# anova(diag_bp)
+ssr_star <- anova(diag_bp)[1, 2]
+chi_bp = (ssr_star/2)/(sse/n)^2
+chi_bp
+qchisq(0.95, 1)
+pchisq(chi_bp, 1, lower.tail = FALSE)
+#c2 Chen C.F. test
+r_stand <- rstandard(PR2)
+hii <- influence(PR2)$hat
+HW5PR2$ui <- (10/8)*(1-hii)*r_stand^2
+diag_ch <- lm(ui~X, data = HW5PR2)
+s_chen <- anova(diag_ch)[1, 2]/2
+s_chen
+qchisq(0.95, 1)
+pchisq(s_chen, 1, lower.tail = FALSE)
+```
+
+
+## (a) 
+
+Plot the residual $e_i$ against $X_i$ to ascertain whether any departures from the SLR model are evident. What is your conclusion? 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+## (b) 
+
+Test the normality of the residuals using the Shapiro-Wilk Test and Kolmogorov-Smirnoff test, respectively. (Note that these tests are available in R; see Example 4 for relevant R code.) What do you conclude? 
+
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+## (c) 
+
+In order to determine whether or not the error variance varies with the level of $X$, conduct the following tests. State your hypotheses and conclusion using the significance level of $\alpha=0.05$. 
+
+### (c1) 
+
+The Breusch-Pagan (BP) test assuming that  $\log \sigma^2_i = \gamma_0 + \gamma_1 X_i$ is applicable; and
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+
+### (c2) 
+
+The test of Chen, C.F. (1993) assuming Var$(\epsilon_i)=\sigma^2 \exp( \lambda X_i)$.
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+
+
+
+\newpage
+# Problem (3) 
+For the data, HW3PR1.txt, given in Problem 1 of Homework 3, answer the following questions.
+
+```{r}
+HW3PR1 <- read.table("./HW3PR1.txt", header=TRUE)
+str(HW3PR1)
+nrow(HW3PR1) 
+mod3 <- lm(formula = Y ~ X1+X2+X3, data=HW3PR1)
+summary(mod3)
+HW3b <- HW3PR1
+HW3b$ti <- rstudent(mod3)
+# externally studentized residuals
+b_ct <- qt(1-(0.05/50), 45)
+b_ct
+HW3b[which(abs(HW3b$ti)>=b_ct),]
+HW3b$ei <- mod3$residuals
+HW3b$ri <- rstandard(mod3)
+HW3b$hii <- influence(mod3)$hat
+HW3b[which(HW3b$hii > 8/50),]
+durbinWatsonTest(mod3, alternative = "positive")
+dbetas <- dfbetas(mod3)
+HW3f <- HW3PR1
+HW3f %>% select(case) %>% mutate(CooksD = cooks.distance(mod3),dfits = dffits(mod3)) -> HW3f
+bind_cols(HW3f, dbetas) -> HW3f
+colnames(HW3f) <- c("case", "CooksD", "dfits","dbeta_X0", "dbeta_X1", "dbeta_X2", "dbeta_X3")
+head(HW3f)
+attach(HW3PR1)
+pairs(Y~X1+X2+X3, pch = 20)
+MP <- cor(HW3PR1[,1:4])
+MP
+corrplot(MP, method='color',order='alphabet', diag=FALSE)
+corrplot(MP, method='circle',order='alphabet',diag=FALSE)
+corrplot.mixed(MP, order='AOE')
+vif(mod3)
+```
+
+## (a) 
+
+Divide the 50 cases into two groups, placing the 25 cases with the smallest fitted values $\hat{Y}_i$ into group 1 and the other 25 cases into group 2. Conduct the Brown-Forsythe (BF) test for constancy of the error variance using $\alpha=0.025$. State the hypotheses and your conclusion.
+
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+  
+## (b) 
+
+Obtain the externally Studentized residuals and identify any outlying $Y$ observations. Use the Bonferroni outlier test procedure with $\alpha=0.05$ (i.e., using $\alpha/50$ for each observation). State the decision rule and conclusion.  
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+  
+## (c) 
+
+The cases are given in consecutive weeks. Prepare a time plot for of the residuals. Is there any indication that the error terms are correlated? Discuss. 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+  
+## (d) 
+
+The observations are listed in time order. Assume that the MLR model is appropriate. Test whether or not positive correlation is present; using $\alpha=0.05$. State the hypotheses and conclusion. 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+  
+## (e) 
+
+Obtain the diagonal element of the hat matrix. Identify any outlying $X$ observations using the rule of thumb presented in Note 6. Are any outlying $Y$ observations also outlying $X$ observations?
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+## (f) 
+
+Obtain the DFFITs, DFBETAs, and Cook's distance values. Are any cases influential  according to these measures? Discuss. 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+## (g) 
+
+Obtain the scatter plot matrix and the correlation matrix. What do these matrices show about pairwise linear associations among the predictors? 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+## (h) 
+
+Find the three variance inflation factors. Do they indicate that a serious multicollinearity problem exists here? 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+
+
+\newpage
+# Problem 4
+
+For the data $(X_1,X_2,Y)=(-1,-1,7.2)$, $(-1,0,8.1)$, $(0,0,9.8)$. Suppose that we fit a MLR model with an intercept to this data set. In this case,  $n=3$, $k=2$, and $p=3$. Compute the hat matrix ${\bf H}={\bf X} ({\bf X}' {\bf X})^{-1} {\bf X}'$.  What are $h_{ii}$, $\hat{Y}_i$, and $e_i$ for $i=1,2,3$? 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+
+
+\newpage
+# Problem 5
+
+Increased arterial blood pressure in the lungs frequently leads to the development of heart failure in patients with chronic obstructive pulmonary disease (COPD). The standard method for determining  arterial lung pressure is invasive, technically difficult, and involves some risk to the patient. The radionuclide imaging technique is a noninvasive, less risky method for estimating arterial pressure in the lungs. To investigate the predictive ability of this method, a cardiologist collected data on 19 mild to moderate COPD patients. In the data set, the response variable ($Y$) is the invasive measure of systolic pulmonary arterial pressure, and the potential noninvasive predictors are  the emptying rate of blood into the pumping chamber of the heart ($X_1$) and the ejection rate of blood pumped out of the heart into the lungs ($X_2$). 
+
+Consider the following model:
+$$
+Y=\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \epsilon
+$$
+where $\epsilon \sim N(0,\sigma^2)$.
+The resulting ANOVA table is
+given below.
+
+\begin{center}
+{\bf Table 1: ANOVA Table}
+
+\begin{tabular}{lcrrrr} \hline
+\multicolumn{6}{c}{Analysis of Variance} \\ \hline
+Source  & DF       & Sum of Square  & Mean Square &  F Stat & Prob $>$ F \\ \hline
+Model   & $\ast$   & 4961.46426     &  $\ast$     &  $\ast$    & $\ast$ \\
+Error   & $\ast$    & $\ast$     &  $\ast$  &         &   \\
+C Total & $\ast$   & 8087.68421     &             &         & \\ \hline
+\end{tabular}
+\end{center}
+
+
+## (a) 
+
+Fill in the missing values (denoted by ``$\ast$'') in Table 1. 
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+
+## (b) 
+
+The estimates of the model parameters are given in the following table.
+
+\begin{center}
+{\bf Table 2: Parameter Estimates}
+
+\begin{tabular}{lrrrrrr} \hline
+Variable & DF & Estimate & Std Error & T Stat & Prob $>$ $|\mbox{T}|$ & VIF \\ \hline
+Intercept& 1  & 84.215024 & 10.25104824  &      8.215    &   0.0001 & 0 \\
+ $X_1$   & 1  & -0.587215 &  $\ast$     &    $\ast$    &   0.1522 & $\ast$ \\
+ $X_2$   & 1  & -0.494677 &  0.18584188  &     -2.662    &   0.0171 & $\ast$ \\ \hline
+\end{tabular}
+\end{center}
+
+### (i) 
+
+What are the "Std Error" and  "T Stat" for $X_1$?  
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+
+### (ii) 
+
+It is calculated that the Pearson correlation coefficient  between $X_1$ and $X_2$ is $r=0.65285$.  Obtain ${\rm VIF}_1$ and ${\rm VIF}_2$ for $X_1$ and $X_2$, respectively. Is there any evidence indicating that  a serious multicollinearity problem exists here?  
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
+### (iii) 
+
+What is the p-value for testing the null hypothesis $H_0$: $\beta_2=0$ versus one-sided alternative hypothesis $H_1$: $\beta_2 > 0$?  
+
+  \begin{bluebox}
+  
+  
+  
+  \end{bluebox}
+  
