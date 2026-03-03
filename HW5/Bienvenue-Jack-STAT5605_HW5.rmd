@@ -116,7 +116,7 @@ plot(HW5PR2$X, resid, pch = 20, main = "Residual vs. Predictor plot",
   
   \begin{bluebox}
   
-  We plotted the residuals against the predictor in Figure \@ref(fig:plot1). In the plot, we observe that the residuals have a funnel shape, narrowing as the plot moves to the right. This may indicate that we have an issue with our homoscedasticty assumption, suggesting that variance in the errors may decrease for increasing $X$. There are no very large residuals in this set, and the residuals appear to be centered around $0$, although we may have fewer residuals close to zero than we might expect (this statement would have to be proven though). The plot does not give us reason to refute a linear relationship as we do not observe non-linear shapes in the residual plot. We should note that while there appears to be meaningful trends in the residuals in relation to the value of $X$, our sample size is very modest ($n=10$) and patterns at this sample size may be spurious, underdeveloped, and/or misleading.
+  We plotted the residuals against the predictor in Figure 1. In the plot, we observe that the residuals have a funnel shape, narrowing as the plot moves to the right. This may indicate that we have an issue with our homoscedasticty assumption, suggesting that variance in the errors may decrease for increasing $X$. There are no very large residuals in this set, and the residuals appear to be centered around $0$, although we may have fewer residuals close to zero than we might expect (this statement would have to be proven though). The plot does not give us reason to refute a linear relationship as we do not observe non-linear shapes in the residual plot. We should note that while there appears to be meaningful trends in the residuals in relation to the value of $X$, our sample size is very modest ($n=10$) and patterns at this sample size may be spurious, underdeveloped, and/or misleading.
   
   \end{bluebox}
   
@@ -420,7 +420,7 @@ ggplot(resid_df, aes(x = Week, y = Residual)) +
 
   \begin{bluebox}
   
-  Reviewing a time series plot of residuals in the model, we do not observe very clear seasonality in residual trends,. This does not mean that seasonality is not present, and indeed we may need data from several years to begin to clarify such a trend if it exists. In terms of seasonal trends, we may wonder if periods of higher variance in residuals (like the spring, and autumn) have anything to do with unexplained variance in the response that is particular to certain seasons. 
+  Reviewing Figure 2, a time series plot of residuals in the model, we do not observe very clear seasonality in residual trends,. This does not mean that seasonality is not present, and indeed we may need data from several years to begin to clarify such a trend if it exists. In terms of seasonal trends, we may wonder if periods of higher variance in residuals (like the spring, and autumn) have anything to do with unexplained variance in the response that is particular to certain seasons. 
   \end{bluebox}
   
   
@@ -557,19 +557,19 @@ cat("Influential cases by Cook's Distance:", influential_cooks, "\n")
 
 Obtain the scatter plot matrix and the correlation matrix. What do these matrices show about pairwise linear associations among the predictors? 
 
-```{r scatter-plot-matrix, fig.cap="Scatter Plot Matrix - Q3 Response and Predictors"}
+```{r scatterplotmatrix, fig.cap="Scatter Plot Matrix - Q3 Response and Predictors"}
 pairs(HW3PR1[, c("Y", "X1", "X2", "X3")], pch = 20)
 ```
 
-```{r correlation-matrix, fig.cap="Correlation Matrix - Q3 Response and Predictors"}
+```{r correlationmatrix, fig.cap="Correlation Matrix - Q3 Response and Predictors"}
 corrplot.mixed(MP, order='AOE')
 ```
 
   \begin{bluebox}
   
-  Figure \@ref(fig:scatter-plot-matrix) shows the scatterplot matrix of the predictors and response for this problem. We observe some important things about the pairwise relationships of our predictors and response. Perhaps the most notable plot is the relationship between $X3$ and $Y$. In that pair's plots, we observe that $X3$ is a binary variable, but that we have a perfect grouping of high $Y$ values having $X3=1$ and relatively lower $Y$ values having $X3=0$. This relationship should prove very useful for regression. For the other plots, we obtain point clouds that do not very clearly seem to indicate strong collinearity. Even the value of $X3$ seems to be somewhat scattered among values of $X1$ and $X2$. 
+  Figure 3 shows the scatterplot matrix of the predictors and response for this problem. We observe some important things about the pairwise relationships of our predictors and response. Perhaps the most notable plot is the relationship between $X3$ and $Y$. In that pair's plots, we observe that $X3$ is a binary variable, but that we have a perfect grouping of high $Y$ values having $X3=1$ and relatively lower $Y$ values having $X3=0$. This relationship should prove very useful for regression. For the other plots, we obtain point clouds that do not very clearly seem to indicate strong collinearity. Even the value of $X3$ seems to be somewhat scattered among values of $X1$ and $X2$. 
   
-  Figure \@ref(fig:correlation-matrix) helps us quantify the relationships we view with the scatterplot matrix. In the scatterplot matrix, we do not find the relationships between predictors to have very high absolute correlation. The only pairing with high correlation is $X3$ and $Y$, which is okay in terms of collinearity because it is not a predictor-predictor relationship. The correlations of $X_i$'s are all $\le |0.12|$, which is likely largely inconsequential for collinearity diagnostics. 
+  Figure 4 helps us quantify the relationships we view with the scatterplot matrix. In the scatterplot matrix, we do not find the relationships between predictors to have very high absolute correlation. The only pairing with high correlation is $X3$ and $Y$, which is okay in terms of collinearity because it is not a predictor-predictor relationship. The correlations of $X_i$'s are all $\le |0.12|$, which is likely largely inconsequential for collinearity diagnostics. 
   
   \end{bluebox}
   
@@ -661,7 +661,7 @@ The resulting ANOVA table is
 given below.
 
 \begin{center}
-{\bf Table 1: ANOVA Table}
+{\bf Table 1: Incomplete ANOVA Table}
 
 \begin{tabular}{lcrrrr} \hline
 \multicolumn{6}{c}{Analysis of Variance} \\ \hline
@@ -677,10 +677,64 @@ C Total & $\ast$   & 8087.68421     &             &         & \\ \hline
 
 Fill in the missing values in Table 1. 
 
+```{r}
+# p-value calculation:
+## Define test F statistic 
+q5a_test_F <- 12.69639
+
+## Calculate p-value
+q5a_pval <- 1 - pf(q5a_test_F, 2, 16)
+cat("p-value: ", q5a_pval)
+```
+
   \begin{bluebox}
   
+  Although we begin with very few pieces of information, they will prove sufficient to complete our ANOVA table. Besides the existing table's information, we will also use the following information from the problem description: $n=19$, $k=2$ (we have two predictors), $p =3$ (predictors + intercept). Let's find each of our eight missing values:
   
+  \textbf{Model DF:}
   
+  The degrees of freedom associated with the model are $k=2$.
+  
+  \textbf{Error DF:}
+  
+  The error degrees of freedom are $n-p = 19-3 = 16$.
+  
+  \textbf{C Total DF:}
+  
+  The corrected total degrees of freedom is the sum of the prior two degrees of freedom, here $18$.
+  
+  \textbf{Error Sum of Squares:}
+  
+  Since the sum of squares are additive, we can subtract the regression sum of squares from the total sum of squares to yield $\text{SSE} = 8087.68421 - 4961.46426 = 3126.21995$.
+  
+  \textbf{Model Mean Square:}
+  
+  The regression MS is $\text{MS}_{\text{MODEL}} = \frac{\text{SSR}}{\text{df}_{\text{MODEL}}} = \frac{4961.46426 }{2} = 2480.73213$
+  
+  \textbf{Error Mean Square:}
+  
+  The MSE is $\text{MSE} = \frac{\text{SSE}}{\text{df}_{\text{ERROR}}} = \frac{3126.21995}{16} = 195.38875$
+  
+  \textbf{F Statistic:}
+  
+  The F statistic for the regression model can be calculated as $\frac{MS_{\text{MODEL}}}{MSE} = \frac{2480.73213}{195.38875} = 12.69639$
+  
+  \textbf{p-value accompanting F-statistic:}
+  
+  Finally, we can calculate a p-value to accompany the aforementioned F statistic. This p-value will be calculated knowing that the test statistic follows an $F_{2, 16}$ distribution. We can find the probability that an $F_{2, 16}$ random variable is greater than our observed test statistic, 12.69639, and find the p-value as $\text{p-value} = 1 - \text{Pr}(F_{2,18} > F_{\text{test}})$. We will use R to calculate the explicit value which works out to be $0.0004983829$.
+
+\begin{center}
+{\bf Table 2: Completed ANOVA Table}
+
+\begin{tabular}{lcrrrr} \hline
+\multicolumn{6}{c}{Analysis of Variance} \\ \hline
+Source  & DF       & Sum of Square  & Mean Square &  F Stat & Prob $>$ F \\ \hline
+Model   & 2   & 4961.46426     &  2480.73213     &  12.69639    & 0.0004983829\\
+Error   & 16    & 3126.21995     &  195.38875  &         &   \\
+C Total & 18   & 8087.68421     &             &         & \\ \hline
+\end{tabular}
+\end{center}
+
   \end{bluebox}
 
 ## (b) 
@@ -702,9 +756,34 @@ Intercept& 1  & 84.215024 & 10.25104824  &      8.215    &   0.0001 & 0 \\
 
 What are the "Std Error" and  "T Stat" for $X_1$?  
 
+``` {r}
+# Calculate test statistic using distribution t_1 and p-value:
+q5_b_i_test_stat <- qt(1 - 0.1522/2, df = 16)
+cat("test statistic absolute value:", q5_b_i_test_stat)
+```
+
   \begin{bluebox}
   
+  \textbf{Standard Error for $X_1$:}
   
+  We can find the standard error for $X_1$ by recognizing that the test statistic can be formulated as a ratio of an estimate of the slope for $X_1$ and its standard error. This leads us to recognize that $\text{SE}(\hat{\beta}_1) = \frac{\hat{\beta}_1}{t}$.  Unfortunately we are also missing our test statistic to we have to keep digging. The magnitude of the test statistic can be retrieved from our p-value when we recognize that the p-value for a two sided test here is $\text{p-value} = 2\text{Pr}(T_{df}> |t|)$. We are given a p-value of $0.1522$ for $X_1$'s coefficient here. We can also recognize that $16$ degrees of freedom are associated with the term (error df). So, we are seeking the test statistic such that a random variable $T \sim t_{16}$ gives our p-value:
+  
+  $$
+  0.1522 = 2\text{Pr}(T_{16} > t_{\text{test}}) \implies |t| = t_{1-\frac{p}{2}, \; 16} = 1.503.
+  $$
+  
+  Now, we want to ensure that our test statistic has the proper sign. Since our regression coefficient was negative, it should be negative. Therefore, our test statistic for $X_1$ should be $-1.503$.
+  
+
+  Finally, we can proceed to our calculation of the standard error for $X_1$'s regression coefficient:
+  
+  $$
+  \text{SE}(\hat{\beta}_1) = \frac{\hat{\beta}_1}{t} = \frac{-0.587215}{-1.503} = 0.391
+  $$
+  
+  \textbf{T statistic for $X_1$:}
+  
+  The T statistic for $X_1$ was identified to find the standard error above. We found it to be $-1.503$.
   
   \end{bluebox}
 
@@ -714,17 +793,37 @@ It is calculated that the Pearson correlation coefficient  between $X_1$ and $X_
 
   \begin{bluebox}
   
+  Since we do not have the full data here, we cannot simply use vif() to get our variance inflation factors. Instead we will manually compute them:
   
+  With only two predictors in our MLR model, the VIFs will actually be symmetric because we formulate the VIF as $\text{VIF}_i = \frac{1}{1- R^2_i}$. But, here $R^2_1 = r^2$ and $R^2_2 = r^2$ so:
   
+  $$
+  \text{VIF}_1 = \frac{1}{1-R^2_1} = \frac{1}{1-0.65285^2} = 1.7428, \text{ and}
+  $$
+  
+  $$
+  \text{VIF}_2 = \frac{1}{1-R^2_2} = 1.7428.
+  $$
+  
+  Our VIF values are quite low, so serious collinearity is not a concern for this modeling endeavor. 
   \end{bluebox}
   
 ### (iii) 
 
 What is the p-value for testing the null hypothesis $H_0$: $\beta_2=0$ versus one-sided alternative hypothesis $H_1$: $\beta_2 > 0$?  
 
+```{r}
+# Calculate p-value:
+
+```
+
   \begin{bluebox}
   
+  Given the test statistic for $X_2$ of $t=-2.662$ and the two-sided p-value of $0.0171$, we want to find a one sided test statistic for the scenario in which we believe that $\beta_2$ may be greater than zero. 
   
+  Before even starting to calculate a particular one-sided p-value for this scenario we should consider that we have a quite strong-magnitude \textit{negative} test statistic $-2.662$, implying that we will get a very high one-sided p-value for our new test.
+  
+  Anyway, we can relate the one-sided p-value to the two-sided p-value via the formula $\text{p-value}_{\text{one-sided}} = 1 - \frac{\text{p-value}_{\text{two-sided}}}{2} = 1 - \frac{0.0171}{2} = 0.99145.$ As we expected, the p-value for this test is very high.
   
   \end{bluebox}
   
