@@ -16,7 +16,8 @@ fontsize: 12pt
 
 
 ```{r setup, include=FALSE}
-invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car", "corrplot"), 
+invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car", "corrplot",
+                   "lmtest"), 
   function(pkg) suppressPackageStartupMessages(library(pkg, 
                                                 character.only = TRUE))))
 ```
@@ -258,33 +259,29 @@ For the data, HW3PR1.txt, given in Problem 1 of Homework 3, answer the following
 HW3PR1 <- read.table("./HW3PR1.txt", header=TRUE)
 str(HW3PR1)
 nrow(HW3PR1) 
-mod3 <- lm(formula = Y ~ X1+X2+X3, data=HW3PR1)
-summary(mod3)
+q3_model <- lm(formula = Y ~ X1+X2+X3, data=HW3PR1)
+summary(q3_model)
 HW3b <- HW3PR1
-HW3b$ti <- rstudent(mod3)
+HW3b$ti <- rstudent(q3_model)
 # externally studentized residuals
 b_ct <- qt(1-(0.05/50), 45)
 b_ct
 HW3b[which(abs(HW3b$ti)>=b_ct),]
-HW3b$ei <- mod3$residuals
-HW3b$ri <- rstandard(mod3)
-HW3b$hii <- influence(mod3)$hat
+HW3b$ei <- q3_model$residuals
+HW3b$ri <- rstandard(q3_model)
+HW3b$hii <- influence(q3_model)$hat
 HW3b[which(HW3b$hii > 8/50),]
-durbinWatsonTest(mod3, alternative = "positive")
-dbetas <- dfbetas(mod3)
+durbinWatsonTest(q3_model, alternative = "positive")
+dbetas <- dfbetas(q3_model)
 HW3f <- HW3PR1
-HW3f %>% select(case) %>% mutate(CooksD = cooks.distance(mod3),dfits = dffits(mod3)) -> HW3f
+HW3f %>% select(case) %>% mutate(CooksD = cooks.distance(q3_model),dfits = dffits(q3_model)) -> HW3f
 bind_cols(HW3f, dbetas) -> HW3f
 colnames(HW3f) <- c("case", "CooksD", "dfits","dbeta_X0", "dbeta_X1", "dbeta_X2", "dbeta_X3")
 head(HW3f)
-attach(HW3PR1)
-pairs(Y~X1+X2+X3, pch = 20)
 MP <- cor(HW3PR1[,1:4])
 MP
-corrplot(MP, method='color',order='alphabet', diag=FALSE)
-corrplot(MP, method='circle',order='alphabet',diag=FALSE)
 corrplot.mixed(MP, order='AOE')
-vif(mod3)
+vif(q3_model)
 ```
 
 ## (a) 
@@ -292,26 +289,46 @@ vif(mod3)
 Divide the 50 cases into two groups, placing the 25 cases with the smallest fitted values $\hat{Y}_i$ into group 1 and the other 25 cases into group 2. Conduct the Brown-Forsythe (BF) test for constancy of the error variance using $\alpha=0.025$. State the hypotheses and your conclusion.
 
 ```{r}
+# Conduct BF test by using anova() on 
 
+## Get fitted values, resids, for computations
+HW3PR1$yhat <- fitted(q3_model)
+HW3PR1$ei   <- residuals(q3_model)
+
+# Sort by fitted values (ascending)
+HW3_sorted <- HW3PR1[order(HW3PR1$yhat), ]
+
+# Build the two groups
+HW3_sorted$group <- rep(c(1,2), each = 25)
+
+# get group medians
+medians <- tapply(HW3_sorted$ei, HW3_sorted$group, median)
+
+# Compute absolute deviations for each group (1,2)
+HW3_sorted$di <- abs(HW3_sorted$ei - medians[HW3_sorted$group])
+
+# Use ANOVA to run test for differences of variances
+bf_model <- aov(di ~ factor(group), data = HW3_sorted)
+summary(bf_model)
 ```
 
   \begin{bluebox}
   
-  The Brown-Forsythe Test is a test to evaluate...
+  The Brown-Forsythe Test is a test to evaluate whether the variances of independent groups are equal. We will use it here to tell whether our higher half of fitted values have error variance different from the lowest fitted values. 
   
-  The assumptions required for the test are ...
+  The assumptions required for the test are minimal, but it is still important that observations are independent. Additionally, since we are splitting the data into two groups, let us denote the error variance of the group of the smallest 25 fitted values as $\sigma^2_1$ and the error variance of the group of the largest 25 fitted values as $\sigma^2_2$.
   
   The hypotheses for this test are:
   
   $$
-  H_0:
+  H_0: \text{The variance of errors in the two groups are the same } (\sigma_1^2 = \sigma_2^2)
   $$
   
   $$
-  H_1:
+  H_1: \text{The error variance in the two groups are not equivalent } (\sigma^2_1 \neq \sigma^2_2)
   $$
   
-  From our test, we find ...
+  From our test, we attain a p-value of $0.00945$, lower than our significance level of $\alpha = 0.025$. Therefore, we can reject the null hypothesis which stated that $\sigma_1^2 = \sigma_2^2$. Therefore, we have reason to believe that error variance changes across groups of observations grouped by fitted value. This means that we have evidence that heteroscedasticity is present across observations ordered by fitted value.
   
   \end{bluebox}
   
@@ -320,17 +337,60 @@ Divide the 50 cases into two groups, placing the 25 cases with the smallest fitt
 
 Obtain the externally Studentized residuals and identify any outlying $Y$ observations. Use the Bonferroni outlier test procedure with $\alpha=0.05$ (i.e., using $\alpha/50$ for each observation). State the decision rule and conclusion.  
 
-
 ```{r}
+# Externally Studentized residuals:
+print(HW3b$ti)
+
 # Bonferroni outlier test:
+HW3PR1 <- read.table("./HW3PR1.txt", header=TRUE)
+q3_model <- lm(Y ~ X1 + X2 + X3, data = HW3PR1)
+n <- nrow(HW3PR1)
+p <- length(coef(q3_model))
+df <- n - p - 1
+qt(1 - (0.05/(2*50)), 45)
+alpha <- 0.05
+alpha_star <- alpha / n
+t_crit <- qt(1 - alpha_star/2, df)
+HW3PR1$ti <- rstudent(q3_model)
+cat("\nBonferroni Critical Value:\n")
+print(t_crit)
+## p-value calculation
+HW3PR1$pval <- 2 * pt(-abs(HW3PR1$ti), df)
+# Identify outliers by cutoff
+outlier_index <- which(abs(HW3PR1$ti) > t_crit)
 
+cat("\nOutlier Detection Results:\n")
+if(length(outlier_index) == 0){
+  cat("No Bonferroni outliers detected at alpha = 0.05.\n")
+} else {
+  cat("Bonferroni outliers detected at observations:\n")
+  print(HW3PR1[outlier_index, ])
+}
 
+# obs with p-value < alpha^star
+bonf_p_outliers <- which(HW3PR1$pval < alpha_star)
+if(length(bonf_p_outliers) > 0){
+  cat("\nObservations with Bonferroni-adjusted p-value < alpha/n:\n")
+  print(HW3PR1[bonf_p_outliers, c("case","ti","pval")])
+}
 ```
   \begin{bluebox}
   
-  The Bonferroni outlier test procedures seeks to identify 
+  We can start reviewing externally Studentized residuals for outliers by using the ``rule of thumb'' method, checking that the absolute value of these residuals are $\ge 2$. Using this method, we find the observations 10, 32, and 38 to be outliers. 
   
-  In the Bonferroni outlier test procedure, we effectively split the significance level between observations ... ELABORATE on this
+  The Bonferroni outlier test procedures seeks to identify outliers more formally. In the Bonferroni outlier test procedure, we effectively split the significance level between observations, meaning that we must use a very strict threshold for identifying outliers. Using this method, we may only designate an observation as an outlier if its corresponding p-value $ < \frac{0.05}{50} = 0.001$ for hypotheses:
+  
+$$
+H_0: \text{Observation }  i \text{ is not an outlier },
+$$
+
+$$
+H_1: \text{Observation }  i \text{ is an outlier }.
+$$
+  
+  The significance level shrinking is designed to counteract the chances of obtaining false positives since the method effectively uses $n$ tests. Our decision rule can also be written as choosing to reject the null hypothesis when the absolute value of the test statistic exceeds a critical t-value, $t_{1-\frac{0.001}{2}, \; 45}$ (we have $45$ degrees of freedom here because we have $50$ observations, an intercept, and three predictors, and for the Bonferroni method we have df $n-p-1 =45$ degrees of freedom).
+  
+  Using the Bonferroni method, we do not find any observations to be outliers (no null hypotheses rejected for our tests). It is somewhat unsurprising that we do not find any outliers using the Bonferroni method after having found outliers using an empirical method as the Bonferroni method is very conservative.
   
   \end{bluebox}
   
@@ -340,13 +400,27 @@ Obtain the externally Studentized residuals and identify any outlying $Y$ observ
 The cases are given in consecutive weeks. Prepare a time plot for of the residuals. Is there any indication that the error terms are correlated? Discuss. 
 
 ```{r plot2, fig.cap="Time Series Plot of Residuals"}
-
+# Create dataframe w/ weeks, resids
+resid_df <- data.frame(
+  Week = 1:length(residuals(q3_model)),
+  Residual = residuals(q3_model)
+)
+# build nice ggplot
+ggplot(resid_df, aes(x = Week, y = Residual)) +
+  geom_point(size = 3, color = "#408068") +
+  geom_hline(yintercept = 0, linetype = "dashed", 
+             color = "black", linewidth = 0.8) +
+  labs(title = "Time Series Plot of Residuals",
+    x = "Week",
+    y = "Residual") +
+  theme_minimal(base_size = 14) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank())
 ```
 
   \begin{bluebox}
   
-  Reviewing a time series plot of residuals in the model, we find...
-  
+  Reviewing a time series plot of residuals in the model, we do not observe very clear seasonality in residual trends,. This does not mean that seasonality is not present, and indeed we may need data from several years to begin to clarify such a trend if it exists. In terms of seasonal trends, we may wonder if periods of higher variance in residuals (like the spring, and autumn) have anything to do with unexplained variance in the response that is particular to certain seasons. 
   \end{bluebox}
   
   
@@ -355,44 +429,127 @@ The cases are given in consecutive weeks. Prepare a time plot for of the residua
 The observations are listed in time order. Assume that the MLR model is appropriate. Test whether or not positive correlation is present; using $\alpha=0.05$. State the hypotheses and conclusion. 
 
 ```{r}
-
+dwtest(q3_model, alternative = "greater")
 ```
 
   \begin{bluebox}
   
-  Since the observations are ordered by time, we are interested in whether...
-  
-  We can use a ... TEST
+  Since the observations are ordered by time, we are interested in whether lag-1 autocorrelation exists in regression residuals. We will use a one-sided Durbin-Watson (DW) test to test for positive first-order autocorrelation of residuals to see if we must worry about this autocorrelation in our data analysis.
   
   We will use hypotheses:
   
   $$
-  H_0: \text{ , and}
+  H_0: \text{First-order autocorrelation }  \rho = 0 \text{, and}
   $$
   $$
-  H_1: \text{ }
+  H_1: \text{First-order autocorrelation }  \rho \neq 0.
   $$
   
+  We are testing using an $\alpha = 0.05$ significance level. 
+  
+  We find a p-value of 0.6786, and therefore we do not have evidence from this test to suggest that there is positive autocorrelation between the residuals and their immediate neighbors.
+  
   \end{bluebox}
+  
   
   
 ## (e) 
 
 Obtain the diagonal element of the hat matrix. Identify any outlying $X$ observations using the rule of thumb presented in Note 6. Are any outlying $Y$ observations also outlying $X$ observations?
 
+```{r}
+# Get diagonal values
+leverages <- hatvalues(q3_model)
+# calculate n and p
+n <- length(leverages)
+p <- length(coef(q3_model)) 
+# get cutoff value
+cutoff <- 2 * p / n
+# ID the high leverage observations using cutoff
+high_leverage <- which(leverages >= cutoff)
+# summary df
+leverage_df <- data.frame(
+  Observation = 1:n,
+  Leverage = leverages,
+  High_Leverage = leverages >= cutoff
+)
+# report results
+cat("Cutoff value (2p/n):", round(cutoff, 3), "\n")
+cat("High leverage observations:", high_leverage, "\n")
+```
+
   \begin{bluebox}
   
+  After pulling out diagonal elements of the hat matrices, the leverages, we can apply the rule of thumb in Note 6 which stated that we can identify an outlier in terms of leverage if we observe $h_{ii} \ge \frac{2p}{n}$. Here, we have $p = k+1 = 4$ and $n=50$. So, we should check for observations where $h_{ii} \ge 0.16$. These observatoins include observations $3, 5, 16, 21, 22, 43, 44, \$ 48$. 
   
+  To check whether any outlying Y observations are also outlying X observations, we can recall the outlying $Y$ observations from earlier: 10, 32, 38 (via Studentized residual cutoffs from Question 3b). These do not overlap with our set of outlying observations for $X$ using this rule of thumb. 
   
   \end{bluebox}
   
 ## (f) 
 
-Obtain the DFFITs, DFBETAs, and Cook's distance values. Are any cases influential  according to these measures? Discuss. 
+Obtain the DFFITs, DFBETAs, and Cook's distance values. Are any cases influential according to these measures? Discuss. 
+
+```{r}
+## Sample size and number of parameters
+n <- nobs(q3_model)
+p <- length(coef(q3_model)) 
+
+# DFFITS
+dffits_vals <- dffits(q3_model)
+## cutoff
+dffits_cutoff <- 2 * sqrt(p / n)
+influential_dffits <- which(abs(dffits_vals) > dffits_cutoff)
+cat("DFFITS cutoff:", round(dffits_cutoff, 3), "\n")
+cat("Influential cases by DFFITS:", influential_dffits, "\n\n")
+
+
+# DFBETAS
+dfbetas_vals <- dfbetas(q3_model)
+## cutoff
+dfbetas_cutoff <- 2 / sqrt(n)
+
+# Identify influential cases (for any coefficient)
+influential_dfbetas <- which(apply(abs(dfbetas_vals) > dfbetas_cutoff, 1, any))
+cat("DFBETAS cutoff:", round(dfbetas_cutoff, 3), "\n")
+cat("Influential cases by DFBETAS:", influential_dfbetas, "\n\n")
+
+
+# Cook's Distance
+
+cooks_vals <- cooks.distance(q3_model)
+# curtoff "Rule of Thumb" Slide 63 Note 6
+cooks_cutoff <- 0.8
+influential_cooks <- which(cooks_vals > cooks_cutoff)
+cat("Cook's Distance cutoff:", round(cooks_cutoff, 3), "\n")
+cat("Influential cases by Cook's Distance:", influential_cooks, "\n")
+
+cooks_vals <- cooks.distance(q3_model)
+# curtoff another rule of thumb
+cooks_cutoff <- 4/n
+influential_cooks <- which(cooks_vals > cooks_cutoff)
+cat("Cook's Distance cutoff:", round(cooks_cutoff, 3), "\n")
+cat("Influential cases by Cook's Distance:", influential_cooks, "\n")
+```
 
   \begin{bluebox}
   
+  \textbf{DFFITs:}
   
+  According to this measure, the following case is influential: 32
+  
+  \textbf{DFBETAs:}
+  
+  According to this measure, the following cases are influential: 10, 14, 16, 32, 43
+  
+  \textbf{Cook's distance:}
+  
+  According to this measure, no cases are influential using the universal rule of thumb of a $0.8$ cutoff value.
+  However, using a $4/n = 0.08$ cutoff suggests that observation 32 is influential. 
+  
+  \textbf{Discussion:}
+  
+  We try out several methods for high-influence observation detection, and find that observation 32 repeatedly shows up, so we may question how the influence of that point is affected our fitted model. We see that the DFFITS method and Cook's distance method (with $4/n$ cutoff in use) give identical results for this particular set of data, both identifying only observation 32 as influential. We find the DFBETAs method to be more liberal in its selection of influential points, and we observe that using its rule-of-thumb cutoff for large samples, we observe 5 influential observations. 
   
   \end{bluebox}
   
@@ -400,19 +557,33 @@ Obtain the DFFITs, DFBETAs, and Cook's distance values. Are any cases influentia
 
 Obtain the scatter plot matrix and the correlation matrix. What do these matrices show about pairwise linear associations among the predictors? 
 
+```{r scatter-plot-matrix, fig.cap="Scatter Plot Matrix - Q3 Response and Predictors"}
+pairs(HW3PR1[, c("Y", "X1", "X2", "X3")], pch = 20)
+```
+
+```{r correlation-matrix, fig.cap="Correlation Matrix - Q3 Response and Predictors"}
+corrplot.mixed(MP, order='AOE')
+```
+
   \begin{bluebox}
   
+  Figure \@ref(fig:scatter-plot-matrix) shows the scatterplot matrix of the predictors and response for this problem. We observe some important things about the pairwise relationships of our predictors and response. Perhaps the most notable plot is the relationship between $X3$ and $Y$. In that pair's plots, we observe that $X3$ is a binary variable, but that we have a perfect grouping of high $Y$ values having $X3=1$ and relatively lower $Y$ values having $X3=0$. This relationship should prove very useful for regression. For the other plots, we obtain point clouds that do not very clearly seem to indicate strong collinearity. Even the value of $X3$ seems to be somewhat scattered among values of $X1$ and $X2$. 
   
+  Figure \@ref(fig:correlation-matrix) helps us quantify the relationships we view with the scatterplot matrix. In the scatterplot matrix, we do not find the relationships between predictors to have very high absolute correlation. The only pairing with high correlation is $X3$ and $Y$, which is okay in terms of collinearity because it is not a predictor-predictor relationship. The correlations of $X_i$'s are all $\le |0.12|$, which is likely largely inconsequential for collinearity diagnostics. 
   
   \end{bluebox}
   
+\newpage
 ## (h) 
 
 Find the three variance inflation factors. Do they indicate that a serious multicollinearity problem exists here? 
+```{r}
+vif(q3_model)
+```
 
   \begin{bluebox}
   
-  
+  We get variance inflation factors very close to $1$ (the minimum for VIF), suggesting that we do \textit{not} observe a serious multicollinearity problem here. In fact, the multicollinearity is extremely minor here. 
   
   \end{bluebox}
 
@@ -504,7 +675,7 @@ C Total & $\ast$   & 8087.68421     &             &         & \\ \hline
 
 ## (a) 
 
-Fill in the missing values (denoted by ``$\ast$'') in Table 1. 
+Fill in the missing values in Table 1. 
 
   \begin{bluebox}
   
