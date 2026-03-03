@@ -345,9 +345,8 @@ print(HW3b$ti)
 HW3PR1 <- read.table("./HW3PR1.txt", header=TRUE)
 q3_model <- lm(Y ~ X1 + X2 + X3, data = HW3PR1)
 n <- nrow(HW3PR1)
-p <- length(coef(q3_model))
-df <- n - p - 1
-qt(1 - (0.05/(2*50)), 45)
+p <- length(coef(q3_model)) #INCLUDES intercept
+df <- n - p
 alpha <- 0.05
 alpha_star <- alpha / n
 t_crit <- qt(1 - alpha_star/2, df)
@@ -442,7 +441,7 @@ dwtest(q3_model, alternative = "greater")
   H_0: \text{First-order autocorrelation }  \rho = 0 \text{, and}
   $$
   $$
-  H_1: \text{First-order autocorrelation }  \rho \neq 0.
+  H_1: \text{First-order autocorrelation }  \rho > 0.
   $$
   
   We are testing using an $\alpha = 0.05$ significance level. 
@@ -721,7 +720,7 @@ cat("p-value: ", q5a_pval)
   
   \textbf{p-value accompanting F-statistic:}
   
-  Finally, we can calculate a p-value to accompany the aforementioned F statistic. This p-value will be calculated knowing that the test statistic follows an $F_{2, 16}$ distribution. We can find the probability that an $F_{2, 16}$ random variable is greater than our observed test statistic, 12.69639, and find the p-value as $\text{p-value} = 1 - \text{Pr}(F_{2,18} > F_{\text{test}})$. We will use R to calculate the explicit value which works out to be $0.0004983829$.
+  Finally, we can calculate a p-value to accompany the aforementioned F statistic. This p-value will be calculated knowing that the test statistic follows an $F_{2, 16}$ distribution. We can find the probability that an $F_{2, 16}$ random variable is greater than our observed test statistic, 12.69639, and find the p-value as $\text{p-value} = 1 - \text{Pr}(F_{2,16} > F_{\text{test}})$. We will use R to calculate the explicit value which works out to be $0.0004983829$.
 
 \begin{center}
 {\bf Table 2: Completed ANOVA Table}
