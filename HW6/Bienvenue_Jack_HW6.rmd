@@ -1,0 +1,431 @@
+---
+title: "STAT 5605 Homework 6"
+subtitle: "March 29, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+invisible(lapply(c("ggplot2", "dplyr", "tidyr", "car", "corrplot",
+                   "lmtest"), 
+  function(pkg) suppressPackageStartupMessages(library(pkg, 
+                                                character.only = TRUE))))
+```
+
+\newpage
+# Problem 1 
+
+Assume that a model has the following form:
+
+$$
+Y=(\alpha+\epsilon)^2 + 2 (\alpha+\epsilon) \sqrt{\beta} X^{1/2} +\beta X,
+$$
+
+where $\alpha$, $\beta$, and $X$ are positive.
+Find the transformations  on $Y$ and/or $X$ needed to achieve linearity.
+
+\begin{bluebox}
+To begin linearizing the equation, let us first factor the righthand side, which is a perfect square:
+
+$$
+Y= \left( (\alpha + \epsilon)+ \sqrt{\beta}\sqrt{X}\right)^2,
+$$
+From here we will want to take the square root of both sides:
+
+$$
+\sqrt{Y} = (\alpha + \epsilon) + \sqrt{\beta}\sqrt{X},
+$$
+Which we can express similarly as:
+
+$$
+\sqrt{Y} = \alpha + \sqrt{\beta}\sqrt{X} + \epsilon.
+$$
+To linearize in terms of model coefficients, we will define $\beta_0 \equiv \alpha$ and $\beta_1 \equiv \sqrt{\beta}$. We can also re-express $\sqrt{X}$ and $\sqrt{Y}$ as $X^\star$ and $Y^\star$, respectively, giving us our new, linear model:
+
+$$
+Y^\star = \beta_0 + \beta_1X^\star + \epsilon.
+$$
+\end{bluebox}
+
+# Problem 2
+
+A marketing researcher studied annual sales of a product that had been introduced 10 years ago. The data are as follows, where $X$ is the year (coded) and $Y$ is sales in thousands of units:
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{ccccccccccc}
+    $i$: & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\hline
+    $X_i$: & 0& 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
+    $Y_i$: & 98 & 135 & 162 & 178 & 221 & 232 & 283 & 300 & 374 & 395\\
+  \end{tabular}
+\end{table}
+
+```{r}
+dat2 <- data.frame(y=c(98,135,162,178,221,232,283,300,374,395),
+                   x=c(0,1,2,3,4,5,6,7,8,9))
+ggplot(data = dat2) + geom_point(aes(x = x, y = y)) +
+labs(x = "year", y = "sales", title = "Sales vs. Year") +
+theme_bw() +
+theme(plot.title = element_text(face = "bold", hjust = 0.5))
+py=powerTransform(y~x, data=dat2)
+py$lambda
+summary(py)
+```
+
+## (a)  
+
+Prepare a scatter plot of the data. Does a linear relation appear adequate here?
+
+\begin{bluebox}
+It appears as though a linear relationship would adequately describe the association between years since product introduction and sales for this product in this data set, for the first ten years since product introduction. We observe what appears to be a linear relationship with an intercept of $~100$ sales per year with a slope of approximately $25-30$ sales per year. However, it is prudent to investigate whether transformations may be appropriate despite a linear relationship appearing reasonable.
+\end{bluebox}
+
+## (b) 
+
+Use the Box-Cox procedure and the alternative form to find an appropriate power transformation of $Y$. Evaluate SSE for $\lambda$ = .3, .4, .5, .6, .7. What transformation of $Y$ is suggested?
+
+```{r}
+# Box-Cox tranformation execution for various lambdas:
+Ybar <- mean(dat2$y)
+lambdas <- c(0.3, 0.4, 0.5, 0.6, 0.7)
+sse_results <- sapply(lambdas, function(lam) {
+  W <- (dat2$y^lam - 1) / (lam * Ybar^(lam - 1))
+  mod <- lm(W ~ dat2$x)
+  sum(resid(mod)^2)
+})
+sse_table <- data.frame(lambda = lambdas, SSE = sse_results)
+# visualization of results
+print(sse_table)
+ggplot(sse_table, aes(x = lambda, y = SSE)) +
+  geom_line() + geom_point(size = 3) +
+  labs(title = "Box-Cox: SSE vs Lambda", x = expression(lambda), y = "SSE") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+```
+
+\begin{bluebox}
+To seek an appropriate power transformation, we can try a variety of different options for the power of the transformation, $\lambda$. After doing so, we observe that, out of our options, the $\lambda = 0.5$ transformation is the best for minimizing SSE, meaning that we reduce idiosyncratic/mis-specification error to the greatest extent when we use a square-root transformation on $Y$. This will be our prefered power transformation of the given options. 
+
+\end{bluebox}
+
+## (c)  
+
+Use the transformation $Y'=\sqrt{Y}$ and obtain the estimated linear regression function for the transformed data.
+
+```{r}
+dat2$y_prime <- sqrt(dat2$y)
+
+mod_c <- lm(y_prime ~ x, data = dat2)
+summary(mod_c)
+```
+
+\begin{bluebox}
+When we transform the outcome variable we are given coefficients which will differ from the linear regression model with the untransformed response. Our new fitted model is:
+
+$$
+\hat{Y} \phantom{}' = 10.26093 + 1.07629X.
+$$
+
+\end{bluebox}
+
+## (d) 
+
+Plot the estimated regression line and the transformed data in Part (c). Does the regression line appear to be a good fit to the transformed data?
+
+```{r}
+ggplot(dat2, aes(x = x, y = y_prime)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "forestgreen") +
+  labs(x = "Year (coded)", y = expression(sqrt(Y)),
+       title = expression("Regression of " * sqrt(Y) * ", square root of annual sales, on X, years since introduction")) +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+```
+
+\begin{bluebox}
+We observe a very good fit when we fit the transformed fitted model on the transformed data. Residuals appear to be consistent in spread and very small throughout the fitted model. Linearity in the data is strong under this transformation. 
+\end{bluebox}
+
+## (e)  
+
+Obtain the residuals and plot them against the fitted values . Also prepare a normal probability plot. What do your plots show?
+
+```{r}
+dat2$fitted_prime <- fitted(mod_c)
+dat2$resid_prime  <- resid(mod_c)
+
+# Residuals vs Fitted
+ggplot(dat2, aes(x = fitted_prime, y = resid_prime)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(x = "Fitted Values", y = "Residuals",
+       title = "Residuals vs. Fitted Values") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
+# Normal probability plot
+ggplot(dat2, aes(sample = resid_prime)) +
+  stat_qq() + stat_qq_line(color = "forestgreen") +
+  labs(title = "Normal Probability Plot of Residuals",
+       x = "Theoretical Quantiles", y = "Sample Quantiles") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+```
+
+\begin{bluebox}
+The \textbf{Residuals versus Fitted Values Plot} shows residuals that do not have a clear relationship with fitted values. We may notice that at the two-year mark (from our original fitted value plot, corresponding to fitted values above 12.5 here) and beyond that residual alternate between being positive and negative, but as such a small sample size, this may be totally spurious. 
+
+The \textbf{Normal Q-Q Plot} shows some amount of light-tailedness in the the sample quantiles when compared to the normal distribution, but otherwise a good match to the normal distribution. 
+\end{bluebox}
+
+## (f)  
+
+Express the estimated regression function in the original units.
+
+\begin{bluebox}
+To express the estimated regression function in the original units, all we must do is square both sides of our fitted model.
+
+Since $\hat{Y} \phantom{}' = 10.26093 + 1.07629X$,
+
+$$
+\hat{Y} = (10.26093 + 1.07629X)^2 = 1.1584X^2 + 22.0875X + 105.2867.
+$$
+\end{bluebox}
+
+
+# Problem 3
+
+Data from a study of computer-assisted learning by 12 students, showing the total number of responses in completing a lesson ($X$) and the cost of computer time ($Y$ in cents), are given as follows:
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ccccccccccccc}
+$i$: & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12\\\hline
+$Y_i$: & 77 & 70 & 85 & 50 & 62 & 70 & 55 & 63 & 88 & 57 & 81 & 51 \\
+$X_i$ & 16 & 14 & 22 & 10 & 14 & 17 & 10 & 13 & 19 & 12 & 18 & 11 \\
+\end{tabular}
+\end{table}
+```{r}
+library(dplyr)
+dat3 <- data.frame(y=c(77,70,85,50,62,70,55,63,88,57,81,51),
+                   x=c(16,14,22,10,14,17,10,13,19,12,18,11))
+mod3 <- lm(y~x,data=dat3)
+dat3$resid = mod3$residuals
+ggplot(data = dat3) + geom_point(aes(x = x, y = resid)) +
+labs(x = "The total number of responses", y = "Residual", title = "Residual vs.
+Regressor Plot") +
+theme_bw() +
+theme(plot.title = element_text(face = "bold", hjust = 0.5))
+dt <- dat3 %>% mutate(fits = mod3$fitted.values, resids = mod3$residuals) %>% arrange(fits)
+dt %>% mutate(group = c(rep(1, 6), rep(2, nrow(dt)-6))) -> dt
+# divide into two groups in the order of fitted value
+# evaluate e_tilde
+dt %>% group_by(group) %>% summarise(med = median(resids)) %>% pull(med) ->e_tilde
+dt %>% mutate(dev_r = ifelse(group == 1, abs(resids-e_tilde[1]), abs(resids-e_tilde[2]))) -> dt
+dt %>% group_by(group) %>% summarise(d_bar = mean(dev_r)) %>% pull(d_bar) ->d_bar
+d_bar
+dt %>% mutate(d_bar = ifelse(group==1, d_bar[1], d_bar[2])) -> dt
+s_sq = sum((dt$dev_r-dt$d_bar)^2)/(nrow(dt)-2)
+s_sq
+t_bf = (d_bar[1]-d_bar[2])/sqrt(s_sq*(1/6 + 1/6))
+print(paste0("Test statistic: ", t_bf))
+# under null hypothesis t_bf ~ t(n-2)
+qt(1-(0.05/2), nrow(dt)-2) # critical value
+qt(1-(0.1/2), nrow(dt)-2)
+```
+
+## (a)  
+
+Fit a linear regression function by ordinary least squares, obtain the residuals, and plot the residuals against $X$. What does the residual plot suggest?
+
+\begin{bluebox}
+The model is fit and the residuals are obtained and plotted against $X$ in the code provided.
+
+From this residual plot, we observe the residuals drift towards values with higher absolute value, suggesting that our error variance may not be constant, and may grow in increasing $X$.
+\end{bluebox}
+
+## (b)  
+
+Divide the cases into two groups, placing the six cases with the smallest fitted values $\hat{Y}_i$ into group I and the other six cases into group 2. Conduct the Brown-Forsythe test for constancy of the error variance using $\alpha$ = .05. State the decision rule and conclusion.
+
+\begin{bluebox}
+Using the Brown-Forscythe test setup that is given in the code, we can run the test under assumptions:
+
+$$
+H_0: \sigma_1^2 = \sigma_2^2,
+$$
+
+$$
+H_1: \sigma^2_1 \neq \sigma^2_2,
+$$
+Where $\sigma^2_1$ represents the error variance for the lower portion of the data set in terms of $X$ and $\sigma^2_2$ represents the error variance for the higher portion of the data in terms of $X$.
+
+We will use significance level $\alpha = 0.05$ and reject the null hypothesis if we observe our test statistic exceed its corresponding critical value $t_{0.975, \; 10} = 2.288$. We use degrees of freedom equal to $10$ because the BF Test uses a critical t value with $n-2$ degrees of freedom. Our test statistic will be defined as:
+
+$$
+t^\ast_{BF} = \frac{(\bar{d}_1 - \bar{d}_2)}{
+\sqrt{\frac{1}{n_1} + \frac{1}{n_2}} \times 
+\sqrt{ \frac{1}{n-2} \left[ 
+\sum^{n_1}_{i=1}(d_{i1} -\bar{d}_1)^2 + \sum^{n_2}_{i=1}(d_{i2} -\bar{d}_2)^2
+\right]}
+},
+$$
+Where each $d$ represents a deviation, with $\bar{d}_1$ and $\bar{d}_2$ representing respective group mean deviations.
+
+For our data, we observe our test statistic to be $\approx-2.2179$. We can compare these two quantities: $|-2.2179| <2.288$., so we do not reject the null hypothesis which stated that the variance is the same between the upper and lower groups defined by $X$ values. Therefore, the Brown-Forscythe test at level $0.05$ does not provide evidence to suggest non-constant variance under this data and the groupings defined in the code. 
+
+\end{bluebox}
+
+## (c)  
+
+Plot the absolute values of the residuals against $X$. What does this plot suggest about the relation between the standard deviation of the error term and $X$?
+
+```{r}
+dat3$abs_resid <- abs(dat3$resid)
+
+ggplot(dat3, aes(x = x, y = abs_resid)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "forestgreen") +
+  labs(x = "Total Responses (X)", y = "|Residuals|",
+       title = "Absolute Residuals vs. X") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+```
+
+\begin{bluebox}
+When we assess the association between our input variable $X$ and the absolute value of the residuals associated with the outcome variable, it appears as though the absolute value of residuals is increasing in $X$. Using a naive linear approximation of the relationship, we see an increasing relationship in our line of best fit. While our Brown-Forscythe test did not detect non-constant variance, this graphical measure may suggest heterogeneity in variance. 
+\end{bluebox}
+
+## (d)  
+
+Estimate the standard deviation function by regressing the absolute values of the residuals against $X$, and then calculate the estimated weight for each case using scenario 5 in page 14 of note 7. Which case receives the largest weight? Which case receives the smallest weight?
+
+```{r}
+# Regress |e_i| on X
+mod_abs <- lm(abs_resid ~ x, data = dat3)
+summary(mod_abs)
+
+# Estimate sigma_i using fitted values 
+dat3$s_hat <- fitted(mod_abs)
+
+# Weights: w_i = 1 / s_hat_i^2  (Scenario 5)
+dat3$w <- 1 / dat3$s_hat^2
+
+# Display weights
+dat3[, c("x", "y", "abs_resid", "s_hat", "w")]
+
+cat("Case with largest weight: ", which.max(dat3$w), "\n")
+cat("Case with smallest weight:", which.min(dat3$w), "\n")
+```
+
+\begin{bluebox}
+From our graphical evaluations of variance homogeneity, we suspect that the standard deviation associated with observations is dependent on the value of the predictor $X$. Therefore, we can estimate the SD function by using the fitted values associated with each residual because the expect the absolute value of each residual to be approximately $\sigma_i$. 
+
+Using this method, we find that observation $4$ has the largest weight and observation $3$ has the smallest weight when we construct weights as $\frac{1}{s^2_i}$, where $s^2_i$ are our approximated standard deviations for each observation, formed using our fitted model for the absolute values of the residuals. 
+\end{bluebox}
+
+## (e)  
+
+Using the estimated weights, obtain the weighted least squares estimates of $\beta_0$ and $\beta_1$. Are these estimates similar to the ones obtained with ordinary least squares in part (a)?
+
+```{r}
+mod_wls <- lm(y ~ x, data = dat3, weights = w)
+summary(mod_wls)
+
+# Compare OLS vs WLS coefficients side by side
+data.frame(
+  Term      = c("Intercept", "Slope"),
+  OLS       = coef(mod3),
+  WLS       = coef(mod_wls)
+)
+```
+
+\begin{bluebox}
+
+When we augment our approach from the ordinary least squares method to weighted least squares, we notice small differences in our coefficients for the model intercept and slope. In WLS, we get a slightly lower intercept and slightly steeper slope for our fitted model. These differences may imply that heteroscedasticity is present, but the difference is not too drastic, implying that heteroscedasticity is likely not an extreme issue for this data set. 
+
+\end{bluebox}
+
+## (f)  
+
+Compare the estimated standard deviations of the weighted least squares estimates $b_{w0}$ and $\beta_{w1}$ in part (e) with those for the ordinary least squares estimates in part (a). What do you find?
+
+```{r}
+# Extract standard errors
+se_ols <- summary(mod3)$coefficients[, "Std. Error"]
+se_wls <- summary(mod_wls)$coefficients[, "Std. Error"]
+
+data.frame(
+  Term  = c("Intercept", "Slope"),
+  SE_OLS = se_ols,
+  SE_WLS = se_wls
+)
+```
+
+\begin{bluebox}
+When we apply WLS, we notice that the standard eror of the slope increases very slightly, and that the standard error of the intercept decreases moderately. For well-specified weights, the WLS standard errors should be smaller than those for OLS under heteroscedasticity, particularly for the intercept. We notice the drop in the intercept SE accompanies by the small increase in the slope SE. Therefore, we may suspect heteroscedasticity but we cannot conclusively verify its presence.
+\end{bluebox}
+
+
+# Problem (4) 
+
+Consider a data set with five observations $\{(Y_i,X_i),\; i=1,2,\dots,5\}$, where $X_1=-2$, $X_2=-1$, $X_3=0$, $X_4=1$, and $X_5=2$. We fit a SLR model (i.e., $Y_i=\beta_0 + \beta_1X_i+\epsilon_i$) to this data set, where the $\epsilon_i$'s are independent. Suppose you are told that $\mbox{var}(\epsilon_i) \propto  \exp(X_i) \sigma^2$ for $i=1,2,\dots,5$.  Based on the available information, find appropriate weight functions $w_1, w_2,\dots,w_5$ for the weighted least squares, and discuss how this choice remedies nonconstant variance in the MLR model.
+
+\begin{bluebox}
+Here, we encounter a situation that is described by Scenario 6 in Slide 14 of Note 7. It states that when $\text{Var}(Y_i) = \sigma^2f(\mathbf{x}_i)$, we can choose weights $w_i = \frac{1}{f(\mathbf{x}_i)}$. While we do not have a particular closed form for $f(x_i)$, we know it is proportional to $e^{x_i}$, so we will approximate $f(x_i)$ with $e^{x_i}$. This will give us weights $w_i = \exp{-x_i}$. For our data set, we get weights:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccc}
+$i$ & $X_i$ & $w_i = \exp(-X_i)$ \\\hline
+1 & $-2$ & $e^2 \approx 7.389$ \\
+2 & $-1$ & $e^1 \approx 2.718$ \\
+3 & $0$  & $e^0 = 1$ \\
+4 & $1$  & $e^{-1} \approx 0.368$ \\
+5 & $2$  & $e^{-2} \approx 0.135$ \\
+\end{tabular}
+\end{table}
+
+Since we know that variance is a function of the input variable in proportion to $\exp{x_i}$, these weights will provide appropriate scaling of variances in order to scale the variance of each observation to $\sigma^2$. We can see that for variance given by $\text{Var}(Y_i) \propto \sigma^2\exp{x_i},$ if we divide by $\exp{x_i}$, our variances will all be proprtional to $\sigma^2$ in such a way that is not dependent of $X_i$ to the best of our understanding of the relationship between $X_i$ and the error variance.
+
+\end{bluebox}
+
+
+# Problem (5)
+
+In the data in ``hw6.csv'', $Y$ is the response variable and $X1-X6$ are covariates.
+
+```{r}
+dat5 <- read.csv("./hw6.csv")
+mod5 <- lm(Y~X1+X2+X3+X4+X5+X6,data=dat5)
+summary(mod5)
+vif(mod5)
+pairs(dat5[, -1])
+```
+
+## (a) 
+
+Fit a first order regression model using all the covariates and examine whether the regression coefficient estimates make sense.
+
+\begin{bluebox}
+
+In our scatterplot matrix, we observe that all variables are linearly associated and positively correlated, largely to a strong extent. This means that we would expect each predictor to individually have a positive relationship with the outcome variable, yielding positive slope coefficients for each variable. However, in practice for an MLR model containing all predictors, we find that the coefficients for $X_2$ and $X_5$ are negative. The strong, positive, linear relationships from the scatterplot matrix imply that all inputs would be useful as predictors for $Y$, but we find only three of them $X_1$, $X_2$, and $X_3$, to be significant at the $\alpha = 0.05$ level. We may suspect that the coefficient estimates given by the model summary may not be reliable, and may not reflect the ability of each variable to individually predict $Y$.
+
+\end{bluebox}
+
+## (b)  
+
+Identify reason(s) for the problem in part (a) and propose a way to alleviate the problem.
+
+\begin{bluebox}
+The clearest reason for the issues identified in Part (a) is multicollinearity. Our predictors are related to each other linearly to a very great extent. Our VIF values $\gg 10$ implies very severe collinearity. I propose attempting to center the data and/or drop variables until VIF values drop to more reasonable levels to mitigate collinearity issues.
+\end{bluebox}
