@@ -380,20 +380,20 @@ When we apply WLS, we notice that the standard eror of the slope increases very 
 
 Consider a data set with five observations $\{(Y_i,X_i),\; i=1,2,\dots,5\}$, where $X_1=-2$, $X_2=-1$, $X_3=0$, $X_4=1$, and $X_5=2$. We fit a SLR model (i.e., $Y_i=\beta_0 + \beta_1X_i+\epsilon_i$) to this data set, where the $\epsilon_i$'s are independent. Suppose you are told that $\mbox{var}(\epsilon_i) \propto  \exp(X_i) \sigma^2$ for $i=1,2,\dots,5$.  Based on the available information, find appropriate weight functions $w_1, w_2,\dots,w_5$ for the weighted least squares, and discuss how this choice remedies nonconstant variance in the MLR model.
 
-\begin{bluebox}
-Here, we encounter a situation that is described by Scenario 6 in Slide 14 of Note 7. It states that when $\text{Var}(Y_i) = \sigma^2f(\mathbf{x}_i)$, we can choose weights $w_i = \frac{1}{f(\mathbf{x}_i)}$. While we do not have a particular closed form for $f(x_i)$, we know it is proportional to $e^{x_i}$, so we will approximate $f(x_i)$ with $e^{x_i}$. This will give us weights $w_i = \exp{-x_i}$. For our data set, we get weights:
-
-\begin{table}[h]
-\centering
-\begin{tabular}{ccc}
-$i$ & $X_i$ & $w_i = \exp(-X_i)$ \\\hline
-1 & $-2$ & $e^2 \approx 7.389$ \\
-2 & $-1$ & $e^1 \approx 2.718$ \\
-3 & $0$  & $e^0 = 1$ \\
-4 & $1$  & $e^{-1} \approx 0.368$ \\
-5 & $2$  & $e^{-2} \approx 0.135$ \\
-\end{tabular}
+\begin{table}
+  \centering
+  \begin{tabular}{ccc}
+  $i$ & $X_i$ & $w_i = \exp(-X_i)$ \\\hline
+  1 & $-2$ & $e^2 \approx 7.389$ \\
+  2 & $-1$ & $e^1 \approx 2.718$ \\
+  3 & $0$  & $e^0 = 1$ \\
+  4 & $1$  & $e^{-1} \approx 0.368$ \\
+  5 & $2$  & $e^{-2} \approx 0.135$ \\
+  \end{tabular}
 \end{table}
+  
+\begin{bluebox}
+Here, we encounter a situation that is described by Scenario 6 in Slide 14 of Note 7. It states that when $\text{Var}(Y_i) = \sigma^2f(\mathbf{x}_i)$, we can choose weights $w_i = \frac{1}{f(\mathbf{x}_i)}$. While we do not have a particular closed form for $f(x_i)$, we know it is proportional to $e^{x_i}$, so we will approximate $f(x_i)$ with $e^{x_i}$. This will give us weights $w_i = \exp{-x_i}$. For our data set, we get weights given in the table above. 
 
 Since we know that variance is a function of the input variable in proportion to $\exp{x_i}$, these weights will provide appropriate scaling of variances in order to scale the variance of each observation to $\sigma^2$. We can see that for variance given by $\text{Var}(Y_i) \propto \sigma^2\exp{x_i},$ if we divide by $\exp{x_i}$, our variances will all be proprtional to $\sigma^2$ in such a way that is not dependent of $X_i$ to the best of our understanding of the relationship between $X_i$ and the error variance.
 
