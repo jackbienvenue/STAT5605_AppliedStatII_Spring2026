@@ -1,0 +1,791 @@
+---
+title: "STAT 5605 Homework 7"
+subtitle: "April 5, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+invisible(lapply(c("ggplot2", "dplyr", "tidyr", "leaps", "MASS",
+                   "tidyverse", "GGally", "corrplot", "car"), 
+  function(pkg) suppressPackageStartupMessages(library(pkg, 
+                                                character.only = TRUE))))
+```
+
+\newpage
+
+# Problem 1
+
+A personnel officer in a governmental agency administered four newly developed aptitude tests to each of 25 applicants for entry-level clerical positions in the agency. For purpose of the study, all 25 applicants were accepted for positions irrespective of their test scores. After a probationary period, each applicant was rated for proficiency on the job. The scores on the four tests $(X_1,X_2,X_3,X_4)$ and the job proficiency score ($Y$) for the 25 employees are given in HW7PR1.txt.
+
+## (a) 
+
+Obtain the scatter plot matrix. Also obtain the correlation matrix of the $X$ variables.
+What do the scatter plots suggest about the nature of the functional relationship between the response variable $Y$ and each of the predictor variables? Are any serious multicollinearity problems evident?
+
+```{r q1-scatterplot-matrix, fig.cap = "Scatter plot matrix", message=FALSE, warning=FALSE}
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+
+# scatterplot matrix
+ggpairs(
+  HW7PR1,
+  columns = 1:5,
+  columnLabels = c("Y\n(Proficiency)", "X1\n(Test 1)", "X2\n(Test 2)", 
+                   "X3\n(Test 3)", "X4\n(Test 4)"),
+  upper = list(continuous = wrap("cor", size = 3.5, color = "black")),
+  lower = list(continuous = wrap("points", alpha = 0.5, size = 1.5, color = "steelblue4")),
+  diag  = list(continuous = wrap("densityDiag", fill = "steelblue4", alpha = 0.4)),
+  title = "Scatter Plot Matrix: Job Proficiency & Aptitude Test Scores"
+) + theme_bw(base_size = 10)
+```
+
+```{r q1-correlation-matrix, message=FALSE, warning=FALSE}
+# correlation matrix
+all_vars <- HW7PR1[, c("y", "x1", "x2", "x3", "x4")]
+MP <- cor(all_vars)
+
+corrplot.mixed(
+  MP,
+  order   = "original", 
+  upper   = "ellipse",
+  lower   = "number",
+  tl.col  = "black",
+  tl.cex  = 0.9,
+  cl.cex  = 0.8,
+  number.cex = 0.85,
+  title   = "Correlation Matrix: Job Proficiency and Aptitude Test Scores",
+  mar     = c(0, 0, 1.5, 0)
+)
+```
+
+\begin{bluebox}
+In the correlation matrix, we notice that the response variable is positively correlated with each predictor variable. Generally, a high absolute value for correlation between a predcitor and a response is a good sign for establishing a useful regression model on training data. However, we also notice that there is some potentially meaningful correlation between covariates, for instance $\text{corr}(x_3,x_4) = 0.78$. We may worry about multicollinearity caused by this relationship as well as the relationships between $x_2$ and $x_3$, and between $x_2$ and $x_4$. For correlated variables in our model, we observe relationships which appear linear in our scatter plot matrix. A telltale sign of multicollinearity would be high VIF or negative coefficients for any predictors in a saturated regression model (because all predcitors have positive correlation with $Y$ marginally).
+
+\end{bluebox}
+
+## (b) 
+
+Fit the multiple regression model containing all four predictor variables. Does it appear that all predictor variables should be retained?
+```{r}
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+mod1 <- lm(y ~ x1+x2+x3+x4,  data=HW7PR1)
+summary(mod1)
+```
+
+\begin{bluebox}
+In the multiple linear regression model $\hat{Y} = \hat{\beta_0} + \hat{\beta_1}X_1 + \hat{\beta_2}X_2 + \hat{\beta_3}X_3 + \hat{\beta_4}X_4$ fit upon our data set, it appears as though all predictors should be retained except for the predictor $X_2$ and its corresponding coefficient $\beta_2$. Our output summary shows us that for a partial F-test of the coefficient of $X_2$, we observe that $\beta_2$ is not significantly different from zero when all our predictors are included in the model. Therefore, it would be reasonable to proceed with this model excluding $\beta_2X_2$ (the p-value associated with the test of $\beta_2$ is $\gg$ any reasonable significance level threshold). 
+\end{bluebox}
+
+## (c) 
+
+Find your best subset regression model(s) according to each of the SSE$_p$, MSE$_p$, $R^2_p$, adjusted $R^2_{a,p}$, Mallows $C_p$, AIC$_p$, and SBC$_p$ criteria. 
+```{r message=FALSE}
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+attach(HW7PR1)
+n <- nrow(HW7PR1)
+library(leaps)
+
+out <- regsubsets(HW7PR1[,2:5], HW7PR1[,1], nbest=6)
+s   <- summary(out)
+
+# Build a clean summary table
+subset_table <- data.frame(
+  Subset   = apply(s$which[,-1], 1, function(r) paste(names(r)[r], collapse="+")),
+  p        = rowSums(s$which[,-1]) + 1,   # +1 for intercept
+  SSEp     = round(s$rss,    3),
+  MSEp     = round(s$rss / (n - rowSums(s$which[,-1]) - 1), 3),
+  R2p      = round(s$rsq,    4),
+  AdjR2p   = round(s$adjr2,  4),
+  Cp       = round(s$cp,     3)
+)
+
+# Add AIC and SBC (BIC)
+# Need to refit each model to extract AIC/BIC
+models <- apply(s$which[,-1], 1, function(r) {
+  vars <- names(r)[r]
+  formula <- as.formula(paste("y ~", paste(vars, collapse="+")))
+  lm(formula, data=HW7PR1)
+})
+subset_table$AICp <- round(sapply(models, AIC), 3)
+subset_table$SBCp <- round(sapply(models, BIC), 3)
+
+cat("=== Full Best Subset Regression Summary Table ===\n\n")
+print(subset_table, row.names=FALSE)
+
+cat("\n=== Best Model by Each Criterion ===\n")
+cat("(* = criterion where LOWER is better; ** = criterion where HIGHER is better)\n\n")
+
+cat("* SSEp   best subset:", subset_table$Subset[which.min(subset_table$SSEp)],  "\n")
+cat("* MSEp   best subset:", subset_table$Subset[which.min(subset_table$MSEp)],  "\n")
+cat("** R2p   best subset:", subset_table$Subset[which.max(subset_table$R2p)],   "\n")
+cat("** AdjR2 best subset:", subset_table$Subset[which.max(subset_table$AdjR2p)],"\n")
+cat("* Cp     best subset:", subset_table$Subset[which.min(subset_table$Cp)],    "\n")
+cat("* AICp   best subset:", subset_table$Subset[which.min(subset_table$AICp)],  "\n")
+cat("* SBCp   best subset:", subset_table$Subset[which.min(subset_table$SBCp)],  "\n")
+```
+
+\begin{bluebox}
+Under several criteria which assist in feature reduction, we find that $MSE_p$, Adj$R^2$, $C_p$, $AIC_p$ and $SBC_p$ indicate a best subset exlcuding $X_2$. The other two criteria, $SSE_p$, and $R^2_p$, indicate that we should retain all variables. 
+\end{bluebox}
+   
+## (d) 
+
+Using the stepwise regression, find the best subsets of predictor variables to predict job proficiency.
+
+Use 0.05 and 0.05; 0.10 and 0.10; and 0.15 and 0.15 for adding and removing a variable. 
+
+```{r messages=FALSE}
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+attach(HW7PR1)
+n <- nrow(HW7PR1)
+source("./stepwise.r")
+
+get_final_vars <- function(...) {
+  out <- capture.output(stepwise(...))
+  dividers <- grep("^=====", out)
+  if (length(dividers) == 0) return("(intercept only)")
+  last_block <- out[(tail(dividers, 2)[1] + 1) : (tail(dividers, 1) - 1)]
+  var_lines <- last_block[grepl("^x[0-9]", trimws(last_block))]
+  vars <- trimws(sub("^(x[0-9]+).*", "\\1", trimws(var_lines)))
+  if (length(vars) == 0) return("(intercept only)")
+  paste(vars, collapse=", ")
+}
+
+get_step_vars <- function(mod, ...) {
+  out <- capture.output(result <- step(mod, ..., trace=0))
+  paste(names(coef(result))[-1], collapse=", ")
+}
+
+cat("========================================\n")
+cat("     STEPWISE REGRESSION RESULTS\n")
+cat("========================================\n\n")
+
+cat("--- alpha = 0.05 / 0.05 ---\n")
+cat("Forward Selection:      ", get_final_vars(y~x1+x2+x3+x4, y~1,
+                                 alpha.to.enter=.05, alpha.to.leave=1),    "\n")
+cat("Backward Elimination:   ", get_final_vars(y~x1+x2+x3+x4, y~x1+x2+x3+x4,
+                                 alpha.to.enter=0,   alpha.to.leave=.05),  "\n")
+cat("Stepwise (fwd start):   ", get_final_vars(y~x1+x2+x3+x4, y~1,
+                                 alpha.to.enter=.05, alpha.to.leave=.05),  "\n")
+cat("Stepwise (bwd start):   ", get_final_vars(y~x1+x2+x3+x4, y~x1+x2+x3+x4,
+                                 alpha.to.enter=.05, alpha.to.leave=.05),  "\n\n")
+
+cat("--- alpha = 0.10 / 0.10 ---\n")
+cat("Forward Selection:      ", get_final_vars(y~x1+x2+x3+x4, y~1,
+                                 alpha.to.enter=.10, alpha.to.leave=1),    "\n")
+cat("Backward Elimination:   ", get_final_vars(y~x1+x2+x3+x4, y~x1+x2+x3+x4,
+                                 alpha.to.enter=0,   alpha.to.leave=.10),  "\n")
+cat("Stepwise (fwd start):   ", get_final_vars(y~x1+x2+x3+x4, y~1,
+                                 alpha.to.enter=.10, alpha.to.leave=.10),  "\n")
+cat("Stepwise (bwd start):   ", get_final_vars(y~x1+x2+x3+x4, y~x1+x2+x3+x4,
+                                 alpha.to.enter=.10, alpha.to.leave=.10),  "\n\n")
+
+cat("--- alpha = 0.15 / 0.15 ---\n")
+cat("Forward Selection:      ", get_final_vars(y~x1+x2+x3+x4, y~1,
+                                 alpha.to.enter=.15, alpha.to.leave=1),    "\n")
+cat("Backward Elimination:   ", get_final_vars(y~x1+x2+x3+x4, y~x1+x2+x3+x4,
+                                 alpha.to.enter=0,   alpha.to.leave=.15),  "\n")
+cat("Stepwise (fwd start):   ", get_final_vars(y~x1+x2+x3+x4, y~1,
+                                 alpha.to.enter=.15, alpha.to.leave=.15),  "\n")
+cat("Stepwise (bwd start):   ", get_final_vars(y~x1+x2+x3+x4, y~x1+x2+x3+x4,
+                                 alpha.to.enter=.15, alpha.to.leave=.15),  "\n\n")
+
+mod1 <- lm(y ~ x1+x2+x3+x4, data=HW7PR1)
+cat("--- AIC/BIC Backward (via step()) ---\n")
+cat("AIC backward:           ", get_step_vars(mod1, direction="backward"),           "\n")
+cat("BIC backward:           ", get_step_vars(mod1, direction="backward", k=log(n)), "\n")
+```
+
+\begin{bluebox}
+For our stepwise regression variable selection, we find the following subsets for each method and significance level:
+
+\begin{tabular}{lcccc}
+\hline
+\textbf{Method} & \textbf{$\alpha$ = 0.05/0.05} & \textbf{$\alpha$ = 0.10/0.10} & \textbf{$\alpha$ = 0.15/0.15} \\
+\hline
+Forward Selection    & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ \\
+Backward Elimination & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ \\
+Stepwise (fwd start) & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ \\
+Stepwise (bwd start) & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ & $X_1, X_3, X_4$ \\
+AIC Backward         & \multicolumn{3}{c}{$X_1, X_3, X_4$} \\
+BIC Backward         & \multicolumn{3}{c}{$X_1, X_3, X_4$} \\
+\hline
+\end{tabular}
+
+Every stepwise method (at the three $\alpha$ values) finds the best subset to be $X_1, X_3, X_4$ here. It is looking clear that $X_2$'s exclusion from the model would be reasonable. 
+\end{bluebox}
+
+# Problem 2 
+
+To assess externally the validity of the regression model identified in Problem 1, 25 additional applicants for entry-level clerical positions in the agency were similarly tested and hired irrespective of their test scores. The data are given in HW7PR2.txt.
+
+## (a)   
+
+Obtain the correlation matrix of the $X$ variables for the validation data set (HW7PR2.txt) and compare it with that obtained in Problem 1(a) for the model-building data set (HW7PR1.txt). Are the two correlation matrices reasonably similar? 
+```{r}
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+HW7PR2 <- read.table("./HW7PR2.txt", header=TRUE)
+
+library(corrplot)
+
+MP1 <- cor(HW7PR1[, c("y", "x1", "x2", "x3", "x4")])
+MP2 <- cor(HW7PR2[, c("y", "x1", "x2", "x3", "x4")])
+
+# Side-by-side layout
+par(mfrow = c(1, 2))
+
+corrplot.mixed(
+  MP1,
+  order      = "original",
+  upper      = "ellipse",
+  lower      = "number",
+  tl.col     = "black",
+  tl.cex     = 0.9,
+  cl.cex     = 0.8,
+  number.cex = 0.85,
+  title      = "Training Data (Problem 1)",
+  mar        = c(0, 0, 1.5, 0)
+)
+
+corrplot.mixed(
+  MP2,
+  order      = "original",
+  upper      = "ellipse",
+  lower      = "number",
+  tl.col     = "black",
+  tl.cex     = 0.9,
+  cl.cex     = 0.8,
+  number.cex = 0.85,
+  title      = "Validation Data (Problem 2)",
+  mar        = c(0, 0, 1.5, 0)
+)
+
+par(mfrow = c(1, 1))  # reset layout
+```
+
+\begin{bluebox}
+The correlation matrix from the training and testing set appear quite similar. For our new plot, no correlations change directions and all are within $0.18$ of their value from the training set.
+\end{bluebox}
+
+## (b) 
+
+Fit the ``best" regression model(s) identified in Problem 1 to the validation data set.
+Compare the estimated regression coefficients and their estimated standard errors to those obtained in Problem 1 using HW7PR1.txt.
+Do the estimates for the validation data set appear to be reasonably similar to those obtained for the model-building data set?
+Are these two sets of the standard errors comparable? Why? 
+
+```{r}
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+HW7PR2 <- read.table("./HW7PR2.txt", header=TRUE)
+best_mod <-lm(y~x1+x3+x4,data=HW7PR1) 
+cat("--- Best model summary on TRAINING data ---\n")
+summary(best_mod)
+mod2 <-lm(y~x1+x3+x4,data=HW7PR2) 
+cat("--- Best model summary on TESTING data ---\n")
+summary(mod2)
+```
+
+\begin{bluebox}
+Analyzing our summary for the test set, we find relatively higher standard errors and relatively larger p-values for partial F-tests on regression coefficients. The coefficient estimates themselves vary slightly from the training set, but are comparable. Assuming that the test set is independent from the training set, the standard errors should be comparable, because we know from the correlation matrices' similarities that the $(X'X)^{-1}$ matrices should be quite similar, which directly are used to calculate the standard errors associated with the coefficients. 
+\end{bluebox}
+   
+## (c) 
+
+Define the mean squared prediction error as
+      $$
+      \mbox{MSPR} = \frac{1}{n^\ast} \sum^{n^\ast}_{i=1} (Y_i-\hat{Y}_i)^2,
+      $$
+      where $Y_i$ is the value of the response variable in the $i$th validation case,
+       $\hat{Y}_i$ is the predicted value for the $i$th validation case based on the model estimated from the model-building data set, and $n^\ast$ is the number of cases in the validation data set. Calculate MSPR and compare it to MSE obtained from the model-building data set under each ``best" model identified in Problem 1. Is there evidence of a substantial bias problem in MSE here? 
+```{r}
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+HW7PR2 <- read.table("./HW7PR2.txt", header=TRUE)
+best_mod <-lm(y~x1+x3+x4,data=HW7PR1) 
+coef(best_mod)
+pred_y = coef(best_mod)[1] + coef(best_mod)[2]*HW7PR2$x1 +
+coef(best_mod)[3]*HW7PR2$x3 + coef(best_mod)[4]*HW7PR2$x4
+mspr = sum((HW7PR2$y-pred_y)^2)/nrow(HW7PR2)
+cat("mspr=",mspr,"\n")
+mse = anova(best_mod)[4, 3]
+cat("best model mse=",mse,"\n")
+```
+ 
+\begin{bluebox}
+We find that MSPR is actually lower than MSE, indicating that we do expect a bias issue for our model. We would question the bias of the model if we were to find MSPR $/gg$ MSE. 
+\end{bluebox}  
+       
+## (d) 
+
+Combine the model-building data set and the validation data set and then fit your ``best" regression model to the combined data.
+     How can the estimated standard errors of the estimated regression coefficients from the combined data be compared to these obtained using the model-building data set or the validation data set alone? Are the values of SSE$_p$, MSE$_p$, $R^2_p$, adjusted $R^2_{a,p}$,
+Mallows $C_p$, AIC$_p$, and SBC$_p$ under your ``best" regression model computed from the combined data comparable to those computed using
+only model-building data set or the validation data set alone?  
+```{r}
+library(tidyverse)
+library(car)
+HW7PR1 <- read.table("./HW7PR1.txt", header=TRUE)
+HW7PR2 <- read.table("./HW7PR2.txt", header=TRUE)
+PR1=HW7PR1
+PR2=HW7PR2
+PR12 = bind_rows(PR1, PR2)
+mod_criteria <- function(data, predictors){
+temp_dt = cbind(data$y, data[predictors])
+colnames(temp_dt)[1] = c("y")
+temp_mod = lm(y~., data = temp_dt)
+full_mod = lm(y~., data = data)
+mse_full = anova(full_mod)[5, 3]
+p = dim(temp_dt)[2]
+n = dim(temp_dt)[1]
+# model criteria
+SSE_p = anova(temp_mod)[p, 2]
+MSE_p = anova(temp_mod)[p, 3]
+Rsq_p = summary(temp_mod)$r.squared
+Rsq_ap = summary(temp_mod)$adj.r.squared
+Mallows_Cp = SSE_p/mse_full - (n-2*p)
+AIC_p = extractAIC(temp_mod)[2]
+SBC_p = extractAIC(temp_mod, k=log(n))[2]
+# output
+out = c(SSE_p, MSE_p, Rsq_p, Rsq_ap, Mallows_Cp, AIC_p, SBC_p)
+return(round(out,4))
+}
+
+# model criteria
+comp_crit = data.frame(Model = 0, SSE_p = 0, MSE_p = 0,
+Rsq_p = 0, Rsq_ap = 0,
+Mallows_Cp = 0, AIC_p = 0, SBC_p = 0)
+models = c("PR1", "PR2", "PR1+PR2")
+comp_crit[1, ] = c(models[1], mod_criteria(PR1, c("x1", "x3", "x4")))
+comp_crit[2, ] = c(models[2], mod_criteria(PR2, c("x1", "x3", "x4")))
+comp_crit[3, ] = c(models[3], mod_criteria(PR12, c("x1", "x3", "x4")))
+comp_crit
+```
+
+```{r}
+nrow(HW7PR1)
+nrow(HW7PR2)
+```
+
+\begin{bluebox}
+Since we expand our data set by a factor of 2, we expect SSE to roughly double. We find this to be true. MSE should appear to remain approximately stable because it scales with the degrees of freedom. Here, it remains quite stable across the individual and combined sets. The $R^2$ and adjusted $R^2$ should remain comparable across the three sets. We observe this to be the case. Mallow's $C_p$ should stay somewhat stable, and close to $4$. We find this quantity to vary more greatly, but remain quite comparable. AIC and SBC scale with sample size, so the AIC and SBC for the individual data sets are not comparable to their quantities under the combined set. 
+\end{bluebox}
+
+# Problem 3
+
+In a regression analysis of on-the-job head injuries of warehouse labors caused by falling objects, $Y$ is a measure of severity of the injury, $X_1$
+ is an index reflecting both the weight of the object and the distance it fell, and $X_2$ and $X_3$ are indicator variables for nature of head protection worn at the time of the accident, coded as follows:
+ \begin{center}
+ \begin{tabular}{lcc}
+ Type of Protection & $X_2$ & $X_3$ \\ \hline
+  Hard hat  &  1 & 0 \\
+  Bump cap & 0 & 1 \\
+  None  & 0 & 0 \\
+  \end{tabular}
+  \end{center}
+  The response function to be used in the study is $E[Y]=\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3$.
+ 
+## (a) 
+
+Develop the response function for each type of protection category. 
+
+\begin{bluebox}
+
+For each of these scenarios with indicator functions, we can write the response function:
+
+\textbf{Hard Hat}
+$$
+E[Y] = \beta_0 + \beta_2 + \beta_1X_1,
+$$
+
+\textbf{Bump Cap}
+$$
+E[Y] = \beta_0 + \beta_3 + \beta_1X_1,
+$$
+
+\textbf{None}
+$$
+E[Y] = \beta_0 + \beta_1X_1.
+$$
+\end{bluebox}
+ 
+## (b) 
+
+For each of the following questions, specify the null hypothesis $H_0$ and the alternative hypothesis $H_a$ for
+  the appropriate test: 
+  
+### (i) 
+
+With $X_1$ fixed, does wearing a bump cap reduce the expected severity of injury as compared with wearing no protection?
+
+\begin{bluebox}
+For fixed $X_1$ and assuming $X_2 = 0$ (since bump cap and hard hat wearing should be mutually exclusive) and that higher $Y$ indicates increasing severity, we can conduct a test using hypotheses:
+
+$$
+H_0: \beta_3 \ge 0
+$$
+
+$$
+H_a: \beta_3 < 0.
+$$
+\end{bluebox}
+  
+### (ii) 
+
+With $X_1$ fixed, is the expected severity of injury the same when wearing a hard hat as when wearing a bump cap? 
+
+\begin{bluebox}
+For fixed $X_1$, we will want to run our test using hypotheses:
+
+$$
+H_0: \beta_2 = \beta_3,
+$$
+
+$$
+H_a: \beta_2 \neq \beta_3.
+$$
+\end{bluebox}
+
+# Problem 4
+
+A tax consultant studied the current relation between selling price and assessed valuation of one-family residential dwellings in a large tax district by obtaining data for a random sample of 16 recent "arm's-length" sales transitions of one-family dwellings located on corner lots and for a random sample of 48 recent sales of one-family dwellings not located on corner lots. In the data (HW7PR4.txt), both selling price ($Y$) and assessed valuation ($X_1$) are expressed in thousand dollars, whereas lot location $(X_2)$ is coded 1 for corner lots and 0 for non-corner lots.
+
+Assume that the error variances in the two populations are equal and that the regression model 
+$$
+E[Y]=\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_1 X_2 
+$$
+is appropriate.
+
+
+## (a) 
+
+Obtain a scatter plot of $Y$ against $X_1$ using two symbols corresponding to $X_2=0$ or $X_2=1$ to denote these two populations. Does the regression relation appear to be the same for the two populations? 
+```{r}
+PR4 <- read.table("./HW7PR4.txt", header=TRUE)
+attach(PR4)
+library(ggplot2)
+ggplot(data = PR4, aes(x=X1, y=Y, color = as.factor(X2), shape =
+as.factor(X2))) +
+geom_point() +
+labs(title = "Scatter Plot Y vs. X1")+
+theme(legend.title = element_blank(),
+plot.title = element_text(face = "bold", hjust = 0.5))
+```
+
+\begin{bluebox}
+The regression relation does not necessarily look the same for the two populations. The slope appears to be less steep for corner lots, indicating that, on average, corner lot homes may have a reduced rate of increase in sale price in increasing valuation. Additionally, since our data is located far from $0$ on the x-axis, our intercepts may be very different for SLR models for each type of home if their slopes differ. Of course, we would have to more formally find our coefficients and test them to make statistical evidence-based assertions.
+\end{bluebox}
+
+## (b) 
+
+Test for identity of the regression functions for dwellings on corner lots and dwellings in other locations using the significance level of 0.05. State the hypotheses and draw conclusion. 
+```{r}
+pr4 <- read.table("./HW7PR4.txt", header=TRUE)
+pr4$X1X2 = pr4$X1*pr4$X2
+# model 3: Y = beta_0 + beta_1*X1 + beta_2*X2 + beta_3*X1X2
+mod_full = lm(Y ~ X1+X2+X1X2, data = pr4)
+#summary(mod_full)
+# reduced model 1: Y = beta_0 + beta_1*X1
+mod_red = lm(Y ~ X1, data = pr4)
+#summary(mod_red)
+sse_full = anova(mod_full)[4,2]
+mse_full = anova(mod_full)[4,3]
+sse_red = anova(mod_red)[2,2]
+extra_ss = sse_red-sse_full
+extra_df = anova(mod_red)[2,1] - anova(mod_full)[4,1]
+F_star = (extra_ss/extra_df)/mse_full
+cat("F*=",F_star,"\n")
+qf(0.95, 2, 60)
+```
+
+\begin{bluebox}
+To test whether the regression functions would be the same for corner and non-corner lots, we can use the following hypotheses to perform a test:
+
+$$
+H_0: \beta_2 = \beta_3 = 0,
+$$
+
+$$
+H_a: \text{At least one of } \beta_2, \beta_3 \text{ is not zero}.
+$$
+
+We will reject the null hypothesis if we find that our test statistic exceeds critical value $F_{0.95, 2,60} = 3.1504$. We find our test statistic to be much larger, $18.6835$, so we will reject the null hypothesis at significance level $\alpha = 0.05$. We have reason to believe that the regression functions differ for corner and non-corner lot homes, differing in slope, intercept, or both. 
+
+\end{bluebox}
+
+## (c) 
+
+```{r}
+PR4 <- read.table("./HW7PR4.txt", header=TRUE)
+PR4$X1X2 <- PR4$X1 * PR4$X2
+library(ggplot2)
+
+mod_full <- lm(Y ~ X1 + X2 + X1X2, data = PR4)
+
+# Generate predicted values for each group
+x1_seq <- seq(min(PR4$X1), max(PR4$X1), length.out = 200)
+pred_corner     <- predict(mod_full, newdata = data.frame(X1 = x1_seq, X2 = 1, X1X2 = x1_seq))
+pred_noncorner  <- predict(mod_full, newdata = data.frame(X1 = x1_seq, X2 = 0, X1X2 = 0))
+
+fit_df <- data.frame(
+  X1    = rep(x1_seq, 2),
+  Y     = c(pred_corner, pred_noncorner),
+  X2 = factor(rep(c(1, 0), each = 200),
+            levels = c(0, 1),
+            labels = c("Non-Corner Lot", "Corner Lot"))
+)
+
+PR4$X2_label <- factor(PR4$X2, labels = c("Non-Corner Lot", "Corner Lot"))
+
+ggplot() +
+  geom_point(data = PR4,
+             aes(x = X1, y = Y, color = X2_label, shape = X2_label),
+             size = 2.5, alpha = 0.8) +
+  geom_line(data = fit_df,
+            aes(x = X1, y = Y, color = X2),
+            linewidth = 1) +
+  scale_color_manual(values = c("Corner Lot"     = "cyan3",
+                                "Non-Corner Lot" = "tomato2")) +
+  scale_shape_manual(values = c("Corner Lot"     = 17,
+                                "Non-Corner Lot" = 16)) +
+  labs(
+    title    = "Estimated Regression Functions by Lot Type",
+    x        = expression(X[1] ~ "(Assessed Value)"),
+    y        = "Y (Selling Price)",
+    color    = "Lot Type", shape = "Lot Type"
+  ) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(face = "bold", hjust = 0.5),
+    legend.position = "bottom"
+  )
+```
+
+Plot the estimated regression functions for the two populations and describe the nature of the differences between them. 
+
+\begin{bluebox}
+It appears as though the slopes differ with the slope of selling price per dollar of assessed value being higher for non-corner lots. If we were to extrapolate back to an assessed value of \$0 to find the intercepts, we would find a higher intercept for corner lots as compared to non-corner lots. 
+
+Practically, our regression relationships show that on average, homes on non-corner lots sell for more than ones on corner lots in our study region and time period for corner lot and non-corner lot homes with the same valuation when the assessed value is greater than \$67.5k.
+\end{bluebox}
+
+
+# Problem 5 
+
+Consider the data with 10 observations and two covariates. We fit the data using the following MLR model:
+
+$$
+Y_i=\beta_0+\beta_1 X_{1i}+ \beta_2X_{2i} + \epsilon_i,  i=1,2,\dots, 10,
+$$
+
+where the $\epsilon_i$ are independently and identically distributed as $N(0,\sigma^2)$ and $\sigma^2$ is unknown.
+The data and the residuals are given below.
+
+\begin{center}
+\begin{tabular}{crcrr} \hline
+Obs  & $x_1$  & $x_2$  &    $y$     & Residual ($e_i$) \\ \hline
+  1  & 0.0  &  0  &  0.9  &    4.3 \\
+  2  & 4.1  &  0  &  5.9  &    0.6 \\
+  3  & 5.1  &  0  &  6.2  &    -1.3 \\
+  4  & 6.1  &  0  &  8.7  &    -0.9 \\
+  5  & 7.1  &  0  &  9.1  &    -2.7 \\
+  6  & 0.0  &  $\ast$ &  0.2   & -6.0 \\
+  7  & 4.8  &  1  & 21.0  &    4.5 \\
+  8  & 3.8  &  1  & 16.7  &     2.3 \\
+  9  & 2.8  &  1  & 12.4  &     0.1 \\
+ 10  &  $\ast$  &  1  &  9.3  &   $\ast$ \\ \hline
+\end{tabular}
+\end{center}
+
+## (a) 
+
+Fill in the three missing values (denoted by ``$\ast$'') in the above table. 
+
+\begin{bluebox}
+Knowing that under an MLR model, the sum of residuals will be zero ($\sum^n_{i=1}e_i =0$), we can find the value of the tenth residual. The sum of the other residuals is $\sum^9_{i=1} e_i = 0.9$, so the residual associated with our tenth observation, $e_{10}$, must be $-0.9$. 
+
+In order to figure out what the values of $x_{1,10}$ and $x_{2,6}$ are, we must calculate the fitted values of our slope coefficients, $\hat{\beta_1}$ and $\hat{\beta_2}$. For observations 1, we can see that the fitted value of the intercept in our model will be $\hat{\beta_0}=-3.4$. Using observations 1 and 2, we can find $\hat{\beta_1}$ because we can calculate $\hat{y}_i = y_i - e_i$ and take advantage of the fact that $x_{2i} = 0$ for each. So, we find $\hat{y}_1 = 0.9-4.3 = -3.4$, $\hat{y}_2 = 5.9-0.6 = 5.3$. So, $\hat{\beta_1} = \frac{5.3-(-3.4)}{4.1-0} \approx 2.122$. 
+
+Then, we can look to observation 7, where $x_{1,7}$ and $x_{2,7}$ are known. Here, $\hat{y}_{6} = 21.0-4.5 = 16.5 = -3.4 + 4.8(2.122) + (1) \hat{\beta_2} \implies 9.71 = \hat{\beta_2}$.
+
+So, we can finally identify $x_{1,10}$ and $x_{2,6}$. For $x_{1,10}$, we can see the fitted value will be $\hat{y}_{10} = 9.3+0.9 = 10.2 = -3.4 + x_{1,10}(2.122) + 1(9.71) \implies x_{1,10} = 1.833$.
+
+For $x_{2,6}$, $\hat{y}_{6} = 0.2+6 = 6.2 = -3.4 + 0(2.122) + x_{2,6}(9.71) \implies x_{2,6} = 0.989$.
+
+So, our missing values are $e_{10} = -0.9$, $x_{2,6} = 0.989$, $x_{1,10} = 1.833$.
+\end{bluebox}
+
+## (b) 
+
+Compute the fitted values $\hat{y}_i$'s for all ten cases and draw the residual plot of $e_i$ against $\hat{y}_i$. Discuss your findings. 
+
+```{r}
+# Data from table (using solved missing values from part (a))
+# beta_hat_0 = -3.4, beta_hat_1 = 2.122, beta_hat_2 = 9.758
+obs <- data.frame(
+  obs  = 1:10,
+  x1   = c(0.0, 4.1, 5.1, 6.1, 7.1, 0.0, 4.8, 3.8, 2.8, 1.81),
+  x2   = c(0,   0,   0,   0,   0,   1,   1,   1,   1,   1  ),
+  y    = c(0.9, 5.9, 6.2, 8.7, 9.1, 0.2, 21.0, 16.7, 12.4, 9.3),
+  e    = c(4.3, 0.6, -1.3, -0.9, -2.7, -6.0, 4.5, 2.3, 0.1, -0.9)
+)
+
+# Compute fitted values: y_hat = y - e
+obs$yhat <- obs$y - obs$e
+
+# Style parameters 
+point_color <- "forestgreen"
+line_color  <- "orange3"
+base_font   <- 14
+point_size  <- 3
+
+# Residual plot: e_i vs y_hat_i
+ggplot(obs, aes(x = yhat, y = e)) +
+  geom_point(color = point_color, size = point_size, alpha = 0.85) +
+  geom_hline(yintercept = 0, color = line_color, linewidth = 1) +
+  geom_text(aes(label = obs), nudge_y = 0.3, size = 3.5, color = "gray40") +
+  labs(
+    title = "Residuals vs. Fitted Values",
+    x     = expression(hat(y)[i]),
+    y     = expression(e[i])
+  ) +
+  theme_classic(base_size = base_font) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    axis.title = element_text(face = "bold")
+  )
+```
+
+\begin{bluebox}
+The fitted values are:
+
+\begin{center}
+\begin{tabular}{crrr} \hline
+Obs & $\hat{y}_i$ & $e_i$ & $y_i$ \\ \hline
+1  & $-3.4$ & $4.3$  & $0.9$ \\
+2  & $5.3$  & $0.6$  & $5.9$ \\
+3  & $7.5$  & $-1.3$ & $6.2$ \\
+4  & $9.6$  & $-0.9$ & $8.7$ \\
+5  & $11.8$ & $-2.7$ & $9.1$ \\
+6  & $6.2$  & $-6.0$ & $0.2$ \\
+7  & $16.5$ & $4.5$  & $21.0$ \\
+8  & $14.4$ & $2.3$  & $16.7$ \\
+9  & $12.3$ & $0.1$  & $12.4$ \\
+10 & $10.2$ & $-0.9$ & $9.3$ \\ \hline
+\end{tabular}
+\end{center}
+
+Upon building our residuals versus fitted values plot, it is immediately clear that there is a ``bowtie'' shape to the plot, that is, we observe that errors do not appear to be constant in terms of fitted values, with higher residuals being found as we move away from $\hat{y}_i \approx 10$. Based upon this relatively small data set, we may worry that our model is struggling to predict $y_i$ with reasonable accuracy outside a relatively small interval of $\hat{y}_i$. We may worry about outliers for some of the observations with high absolute-value residuals, such as observations 1, 7, and 6. 
+\end{bluebox}
+
+## (c) 
+
+Draw an appropriate plot in order to aid you in identifying a better model to fit the data.
+		Hint: Plot $y$ vs $x_1$ and use a different color and/or symbol to represent observations with $x_2=0$ or $x_2=1$, then overlay the fitted regression line(s).
+		
+```{r}
+b0 <- -3.4; b1 <- 2.122; b2 <- 9.758
+
+point_color0 <- "forestgreen"
+point_color1 <- "steelblue"
+line_color0  <- "darkgreen"
+line_color1  <- "steelblue4"
+base_font    <- 14
+point_size   <- 3
+
+obs$x2_label <- factor(obs$x2, labels = c("x2 = 0", "x2 = 1"))
+
+ggplot(obs, aes(x = x1, y = y, color = x2_label, shape = x2_label)) +
+  geom_point(size = point_size, alpha = 0.85) +
+  geom_text(aes(label = obs), nudge_y = 0.6, size = 3.2, color = "gray40") +
+  # Fitted line for x2 = 0
+  geom_abline(intercept = b0,      slope = b1,
+              color = line_color0, linewidth = 0.9, linetype = "solid") +
+  # Fitted line for x2 = 1
+  geom_abline(intercept = b0 + b2, slope = b1,
+              color = line_color1, linewidth = 0.9, linetype = "dashed") +
+  scale_color_manual(values = c("x2 = 0" = point_color0,
+                                "x2 = 1" = point_color1)) +
+  scale_shape_manual(values = c("x2 = 0" = 16, "x2 = 1" = 17)) +
+  labs(
+    title   = expression(y ~ "vs." ~ x[1] ~ "by Group" ~ x[2]),
+    x       = expression(x[1]),
+    y       = expression(y),
+    color   = NULL,
+    shape   = NULL
+  ) +
+  theme_classic(base_size = base_font) +
+  theme(
+    plot.title   = element_text(face = "bold"),
+    axis.title   = element_text(face = "bold"),
+    legend.position = "top"
+  )
+```
+
+\begin{bluebox}
+It appears that when we examine our observations by binary $x_2$ class groupings, that the slope provided by $\hat{\beta_1}$ is inadequate for our modeling purposes. In fact, since the slope appears to be different for each group, this issue goes beyond a poor choice of $\hat{\beta_1}$. We need to respecify our model in such a way that the $\beta_1$ slope is adaptive to the membership of $x_2$ to classes $1$ and $0$. We can do this in our model by adding an interaction term, changing our model to $Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 X_{1i} X_{2i} + \epsilon_i$, which will allow the model flexibility to define different slopes for the two groups. 
+
+\end{bluebox}
+
+## (d) 
+
+Provide the estimated regression equation of your best model for fitting the data. Provide evidence to support the claim that your best model is better than the model used in the above table.
+  
+```{r}
+# Fit the original model and interaction model
+mod_original  <- lm(y ~ x1 + x2,      data = obs)
+mod_interaction  <- lm(y ~ x1 * x2,      data = obs)
+
+# SSE comparison
+SSE_add <- sum(resid(mod_original)^2)
+SSE_int <- sum(resid(mod_interaction)^2)
+cat("SSE (additive model):    ", round(SSE_add, 4), "\n")
+cat("SSE (interaction model): ", round(SSE_int, 4), "\n")
+
+# Extra-SS F-test: H0: beta_3 = 0 (interaction term not needed)
+anova(mod_original, mod_interaction)
+
+# Estimated regression equation for best model
+summary(mod_interaction)
+
+# Residual plot for interaction model
+obs$yhat_int <- fitted(mod_interaction)
+obs$e_int    <- resid(mod_interaction)
+
+point_color <- "forestgreen"
+line_color  <- "orange3"
+base_font   <- 14
+point_size  <- 3
+
+ggplot(obs, aes(x = yhat_int, y = e_int)) +
+  geom_point(color = point_color, size = point_size, alpha = 0.85) +
+  geom_hline(yintercept = 0, color = line_color, linewidth = 1) +
+  geom_text(aes(label = obs), nudge_y = 0.25, size = 3.5, color = "gray40") +
+  labs(
+    title = "Residuals vs. Fitted Values (Interaction Model)",
+    x     = expression(hat(y)[i]),
+    y     = expression(e[i])
+  ) +
+  theme_classic(base_size = base_font) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    axis.title = element_text(face = "bold")
+  )
+```
+
+\begin{bluebox}
+We can now examine how our proposed altered model, $Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 X_{1i} X_{2i} + \epsilon_i$, performs. This model will have a regression equation of $\hat{Y}_i = \hat{\beta}_0 + \hat{\beta}_1 X_{1i} + \hat{\beta}_2 X_{2i} + \hat{\beta}_3 X_{1i}X_{2i}$.
+
+After fitting the new, interaction model, we observe residuals which are much closer to constant with respect to changes in the fitted value $\hat{y}_i$, an initial good sign that our model has improved over the original. Comparing SSE, we find a reduction from $91.3865$ to $2.0765$ when comparing the old to new model, implying substantially better explanatory abilities from our interaction model.
+
+If we test $H_0: \beta_3 = 0$ versus $H_a: \beta_3 \neq$ using an F-test and F-statistic $F^* = \frac{\left[\text{SSE}_\text{original} - \text{SSE}_\text{interaction}\right]/1} {\text{SSE}_\text{interaction}/(n-p)}$, and a significance level $\alpha = 0.05$, we can reject the null hypothesis (p-value $\ll$ $\alpha$), implying that the interaction term should be included in the model. 
+
+Therefore, we have several reasons to believe that the new model with an interaction term is a superior fit to the original model which excluded it and should move forward with the interaction model.
+\end{bluebox}
