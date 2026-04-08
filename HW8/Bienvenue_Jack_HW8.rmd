@@ -1,0 +1,517 @@
+---
+title: "STAT 5605 Homework 8"
+subtitle: "April 15, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+invisible(lapply(c("ggplot2", "dplyr", "tidyr", "leaps", "MASS",
+                   "tidyverse", "glm2", "car"), 
+  function(pkg) suppressPackageStartupMessages(library(pkg, 
+                                                character.only = TRUE))))
+```
+
+# Problem 1
+
+Consider the negative binomial distribution with density given by
+$$
+f_Y(y|k,\mu)=\frac{\Gamma(y+k)}{\Gamma(k)\Gamma(y+1)}
+\left( \frac{k}{\mu+k} \right)^k \left(1- \frac{k}{\mu+k}\right)^y, \;\;
+ y=0,1,2,\dots,
+$$
+where $k$ and $\mu$ are parameters.
+
+
+## (a)
+If $k$ is known and $\mu$ is an unknown parameter, determine whether $f_Y(y|k,\mu)$ belongs to the exponential family.
+           If your answer is Yes, please identify the exact expressions of $\theta$, $b(\theta)$, $a(\phi)$, and $c(y,\phi)$.
+
+\begin{bluebox}
+Let's see if an exponential family factorization is possible for the negative binomial distribution. We can begin with a log-transformation of the given expression for the negative binomial PMF:
+
+$$
+\log f_Y(y|k,\mu)= \log\frac{\Gamma(y+k)}{\Gamma(k)\Gamma(y+1)} +
+k\log\left( \frac{k}{\mu+k} \right)
++ y \log \left(1- \frac{k}{\mu+k}\right), \;\;
+ y=0,1,2,\dots,
+$$
+From here, we observe that the rightmost term is linear in $y$ and contains parameter $\mu$, so we will use the coefficient of $y$ as our $\theta$ to start with $\theta := \log \left( 1 - \frac{k}{\mu+k}\right)$, which will be equivalent to $\theta = \log \left( \frac{\mu}{\mu + k}\right)$.
+
+To get $b(\theta)$, we can collect the other term(s) depending on $\mu$ but not $y$, which will amount to the $k \log \left( \frac{k}{\mu+k} \right)$. To express this in terms of $\theta$, we must realize that $\frac{k}{\mu+k} = 1 - \frac{\mu}{\mu+k}$, and $\frac{\mu}{\mu+k} = \exp \{ \log \frac{\mu}{\mu+k}\} = \exp\{\theta \}$, so $b(\theta) = -k\log(1-e^\theta)$ (we have to apply a negative sign to this expression because $b(\theta)$ is subtracted, not added, in the exponential family factorization, but we initially have a positive sign in our NB PMF here).
+
+Oftentimes for exponential family distributions, $a(\phi)$ is simply $1$, and this is one of those cases as we do not observe a free dispersion parameter around our distribution. Finally, our normalizing constant $c(y, \phi)$ will simply be the first term, $\log f_Y(y|k,\mu)= \log\frac{\Gamma(y+k)}{\Gamma(k)\Gamma(y+1)}$.
+
+We found an exponential family factorization, so we can claim that the negative binomial distribution belongs to the exponential family with
+$\theta = \log\!\left(\dfrac{\mu}{\mu+k}\right)$,
+$b(\theta) = -k\log\!\left(1 - e^{\theta}\right)$,
+$a(\phi) = 1$,
+and $c(y,\phi) = \log\dfrac{\Gamma(y+k)}{\Gamma(k)\,\Gamma(y+1)}$.
+\end{bluebox}
+
+## (b) 
+If both $k$ and $\mu$ are unknown, determine whether $f_Y(y|k,\mu)$ belongs to the exponential family. If your answer is No, please provide your reason.
+
+\begin{bluebox}
+When both $k$ and $\mu$ are unknown, the negative binomial distribution will fail to be a member of the exponential family. We can see in our normalizing function $c(y,\phi) = \log\dfrac{\Gamma(y+k)}{\Gamma(k)\,\Gamma(y+1)}$ that $k$ appears in the numerator, summed with $y$. This will be an inseparable pairing of $y$ and $k$ that will make the necessary parameterization impossible, as we will be unable to group this $k$ with the $k$'s found in the other terms in a way that is free from $y$. Resulting attempts at separation would not be able to cleanly find $\theta$, $b(\theta)$, $a(\phi)$, and $c(y, \phi)$ in the parameterization necessary to be a member of the exponential family. 
+\end{bluebox}
+
+# Problem 2 
+In a regression study, three types of banks were involved, namely, commercial, mutual savings, and savings and loan. Consider the following system of indicator variables for type of bank:
+  \begin{table}[h]
+  \centering
+  \begin{tabular}{lrr}
+    Type of Bank & $X_2$ & $X_3$ \\ \hline
+    Commercial & 1 & 0 \\
+    Mutual savings & 0 & 1 \\
+    Savings and loan & -1 & -1
+  \end{tabular}
+\end{table}
+
+## (a)  
+
+Develop a first-order linear regression model for relating last year's profit or loss ($Y$) to size of bank ($X_1$) and type of bank ($X_2, X_3$).
+
+\begin{bluebox}
+If we consider last year's profit/loss to be the response variable $Y$, with some continuous measure of bank size $X_1$ and indicators for bank type $X_2$ and $X_3$, we can construct our first-order linear regression model as:
+
+$$
+Y_i = \beta_0 + X_1\beta_1 + X_2\beta_2 + X_3\beta_3 + \epsilon_i.
+$$
+\end{bluebox}
+
+## (b) 
+
+State the response functions for the three types of banks.
+
+\begin{bluebox}
+We can work on our three response functions as:
+
+\textbf{Commercial:}
+
+$$
+E[Y] = \beta_0 + X_1\beta_1 + \beta_2,
+$$
+
+\textbf{Mutual Savings:}
+
+$$
+E[Y] = \beta_0 + X_1\beta_1 + \beta_3,
+$$
+
+\textbf{Savings and Loan:}
+
+$$
+E[Y] = \beta_0 + X_1\beta_1 - \beta_2 - \beta_3
+$$
+
+\end{bluebox}
+
+## (c)  
+
+Interpret each of the following quantities: (1) $\beta_2$, (2) $\beta_3$, (3) $-\beta_2-\beta_3$.
+
+\begin{bluebox}
+\textbf{(1):}
+
+The quantity $\beta_2$ represents the mean deviation in last year's total profit/loss between commercial banks and the overall mean profit/loss from last year among all bank types, given a bank size $X_1$.
+
+\textbf{(2):}
+
+The quantity $\beta_3$ represents the mean deviation in last year's total profit/loss between mutual savings banks and the overall mean profit/loss from last year among all bank types, given a bank size $X_1$.
+
+\textbf{(3):}
+
+The quantity $-\beta_2 - \beta_3$ represents the deviation of the mean profit/loss from the precious year for savings and loan banks from the overall mean profit/loss across the bank types at some bank size $X_1$. 
+\end{bluebox}
+
+## (d)  
+
+Provide the form of the test statistic for testing $H_0$: $\beta_2 + \beta_3=0$.
+
+\begin{bluebox}
+
+To test $H_0$: $\beta_2 + \beta_3=0$, we can form a test statistic $t^\star$ (we can equivalently use a partial F test, but this is not necessary under our single-constraint setup) as $t^\star = \frac{\bm{L}\bm{b}}{s\sqrt{\bm{L}(\bm{X}'\bm{X})^{-1}\bm{L}'}}$, where $\bm{L}$ expresses the coefficients for the linear combination of coefficients for the hypothesis test and $\bm{b}$ is a vector of estimated coefficients. Here, $\bm{L} = (0, \; 0, \; 1, \; 1) $ and $s = \sqrt{\text{MSE}}$. So, our test statistic here will simplify to:
+
+$$
+t^\star = \frac{b_2 + b_3}{s (0, \; 0, \; 1, \; 1) (\bm{X}'\bm{X})^{-1}\begin{pmatrix} 0 \\ 0 \\ 1 \\ 1\end{pmatrix}},
+$$
+
+Which follows a $t_{n-4}$ distribution under $H_0$. Note that $\bm{X}$ represents the design matrix here, whose inverse Gram matrix $\bm{X}'\bm{X})^{-1}$ will be $\in \mathbb{R^{4 \; x \; 4}}$.
+
+\end{bluebox}
+
+# Problem 3
+
+Consider a logistic regression model with
+  \begin{equation*}
+    E(Y)=\frac{\exp(\beta_0+\beta_1X)}{1+\exp(\beta_0+\beta_1X)}.
+  \end{equation*}
+ 
+## (a) 
+Plot the logistic mean response function when $\beta_0=20$ and $\beta_1=-2$.
+
+```{r logistic-reg-plot, fig.cap = "Logistic Mean Response Function Plot"}
+beta0 <- 20
+beta1 <- -2
+
+ggplot(data.frame(x = c(0, 15)), aes(x = x)) +
+  stat_function(
+    fun = function(x) exp(beta0 + beta1 * x) / (1 + exp(beta0 + beta1 * x)),
+    color = "#2C7BB6",
+    linewidth = 1
+  ) + labs(x = expression(X), y = expression(E(Y)), title = expression(
+    paste("Logistic Mean Response: ", beta[0], " = 20, ", beta[1], " = -2"))) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.25)) +
+  scale_x_continuous(breaks = seq(0, 15, by = 1)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "gray50", 
+             linewidth = 0.5) +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(hjust = 0.5),
+    panel.grid.minor = element_blank())
+```
+
+\begin{bluebox}
+When we plot the logistic regression function with $\beta_0 = 20$, $\beta_1 = -2$, we observe a regression function where for predictor $X$, for values $\le 8$, the expected class is predominantly $1$. We observe class $0$ to be dominant for $X \ge 12$. Between these values, we observe the typical sigmoid-shaped curve. 
+\end{bluebox}
+
+## (b)  
+For what value of $X$ is the mean response equal to .5?
+
+\begin{bluebox}
+Figure \@ref(fig:logistic-reg-plot)'s visualization of the mean response for $\beta_0 = 20$, $\beta_1 = -2$ shows the mean response equaling $0.5$ at $X=10$.
+\end{bluebox}
+
+## (c)  
+Find the odds when $X = 125$, when $X = 126$, and the ratio of the odds when $X = 126$ to the odds when $X = 125$. Is the odds ratio equal to exp($\beta_1$) as it should be?
+
+```{r odds-ratio}
+beta0 <- -14.8763
+beta1 <- 0.1322
+
+# Fxn to compute odds from logistic model
+odds <- function(x) {
+  pi_x <- exp(beta0 + beta1 * x) / (1 + exp(beta0 + beta1 * x))
+  pi_x / (1 - pi_x)
+}
+
+odds_125 <- odds(125)
+odds_126 <- odds(126)
+odds_ratio <- odds_126 / odds_125
+
+cat("Odds at X = 125:       ", round(odds_125, 6),  "\n")
+cat("Odds at X = 126:       ", round(odds_126, 6),  "\n")
+cat("Odds ratio (126/125):  ", round(odds_ratio, 6), "\n")
+cat("exp(beta1):            ", round(exp(beta1), 6), "\n")
+cat("Are they equal?        ", isTRUE(all.equal(odds_ratio, exp(beta1))), "\n")
+```
+
+\begin{bluebox}
+In our code chunk above, we successfully find the odds ratio for the mean response between two points $1$ unit apart in $X$ to be equivalent to $\exp\{\beta_1 \}$], as we would expect.
+\end{bluebox}
+
+  
+# Problem 4 
+
+Stein (1988) discusses models relating the number of species of fish in 70 lakes around the world to the area of the lake (in hectares). The following R code for fitting two particular models using the natural logarithm of area (log(Area)) as a predictor variable for the number of species (\textit{Fish}) is used to analyze this data set. 
+
+```{r}
+dat4 <- read.csv("./Fish70lakes.csv")
+mod4a <- glm2(Fish ~ log(Area), family = poisson, data=dat4)
+summary(mod4a)
+pearson_residuals <- residuals(mod4a, type = "pearson")
+pearson_chi2 <- sum(pearson_residuals^2)
+df <- df.residual(mod4a)
+cat("Poisson Pearson Chi-Square=",pearson_chi2," df=",df,"\n")
+mod4b <- glm.nb(Fish ~ log(Area), data=dat4)
+summary(mod4b)
+pearson_residuals <- residuals(mod4b, type = "pearson")
+pearson_chi2 <- sum(pearson_residuals^2)
+df <- df.residual(mod4b)
+cat("Negative Binomial Pearson Chi-Square=",pearson_chi2," df=",df,"\n")
+```
+
+
+## (a) 
+
+Evaluate the goodness of fit of the Poisson and Negative Binomial regression models to the species data. Write down the fitted regression equation for the model that is most appropriate for this data.
+
+\begin{bluebox}
+We are given a few metrics to evaluate goodness-of-fit for each of these models. The Akaike Information Criterion, which provides a measure of goodness-of-fit which penalizes for model complexity for which lower values are preferable, is substantially lower for the negative binomial model. Since our models have the same inputs, we can decisively select negative binomial regression over Poisson regression based upon this measure. Other metrics such as the Pearson $\chi^2$'s and the deviances are less comparable directly. So, we will select the negative binomial model, whose fitted regression equation can be expressed as:
+
+$$
+\hat{\mu}_i = \exp \left( \hat{\beta}_0 + \hat{\beta}_1 X_{i1}\right) = e^{\hat{\beta}_0} \times \text{Area}_i^{\hat{\beta}_1}.
+$$
+
+\end{bluebox}
+
+## (b) 
+
+For the model selected in part (a), estimate the multiplicative effect on the expected number of species when increasing the logarithm of the area (log(Area)) by one unit.  Also provide a 95\% confidence interval for this multiplicative effect.
+
+```{r multiplicative-effect}
+beta1_hat <- coef(mod4b)["log(Area)"]
+se_beta1  <- summary(mod4b)$coefficients["log(Area)", "Std. Error"]
+
+mult_effect <- exp(beta1_hat)
+ci_lower    <- exp(beta1_hat - 1.96 * se_beta1)
+ci_upper    <- exp(beta1_hat + 1.96 * se_beta1)
+
+cat("Multiplicative effect (exp(beta1)):", round(mult_effect, 4), "\n")
+cat("95% CI: (", round(ci_lower, 4), ",", round(ci_upper, 4), ")\n")
+```
+
+\begin{bluebox}
+We can find the desired multiplicative effect in the negative binomial regression problem by exponentiating the coefficient $\hat{\beta}_1$. We can form a 95\% confidence interval for this multiplicative effect by similarly exponentiating the bounds of the confidence interval.
+
+As given by our R code chunk above, the multiplicative effect if increasing Area by one unit is 1 on the number of species present in a lake is 1.189, indicating that on average, the one-unit increase in lake area is associated with an 18.91\% increase in count of unique fish species. The 95\% confidence interval for this increase spans from 13.18\% to 24.92\%.
+
+\end{bluebox}
+
+# Problem 5 
+
+The data, species.csv, consist of NATIVE (response), and (ELEV, DISTNEAR, DISTCITY, AREANEAR) (covariates), and AREA. 
+
+```{r}
+dat5 <- read.csv("./species.csv")
+mod5a <- glm2(NATIVE ~ ELEV+DISTNEAR+DISTCITY+AREANEAR+offset(log(AREA)), 
+              family = poisson, data=dat5)
+summary(mod5a)
+pearson_residuals <- residuals(mod5a, type = "pearson")
+pearson_chi2 <- sum(pearson_residuals^2)
+df <- df.residual(mod5a)
+cat("Poisson Pearson Chi-Square=",pearson_chi2," df=",df,"\n")
+mod5b <- glm.nb(NATIVE ~ ELEV+DISTNEAR+DISTCITY+AREANEAR+offset(log(AREA)), 
+                data=dat5)
+summary(mod5b)
+pearson_residuals <- residuals(mod5b, type = "pearson")
+pearson_chi2 <- sum(pearson_residuals^2)
+df <- df.residual(mod5b)
+cat("Negative Binomial Pearson Chi-Square=",pearson_chi2," df=",df,"\n")
+```
+
+## (a) 
+
+Using log(AREA) as an offset variable, fit the Poisson log-linear regression model with NATIVE as a response and (ELEV, DISTNEAR, DISTCITY, AREANEAR) as covariates. 
+  Does extra-Poisson variation appear to be present? Provide supporting evidence for your answer.
+
+```{r}
+# Pearson chi-square goodness of fit
+pearson_resid <- residuals(mod5a, type = "pearson")
+X2 <- sum(pearson_resid^2)
+df <- df.residual(mod5a)
+
+cat("Pearson Chi-Square:", round(X2, 4), "\n")
+cat("Degrees of Freedom:", df, "\n")
+cat("X2/df (dispersion estimate):", round(X2/df, 4), "\n")
+cat("P-value:", round(pchisq(X2, df, lower.tail = FALSE), 4), "\n")
+```
+
+\begin{bluebox}
+Based upon the Poisson model with the offset term, we find evidence of overdispersion. Typically, the sum of pearson residuals divided by the degrees of freedom associated with the residuals should give a quantity around $1$. Our value of $88.88$ greatly exceeds $1$. This great difference allows us to be sure that overdispersion will be an issue for our Poisson model. Overdispersion can lead us to have estimates of coefficients which are more precise than they should be, threatening to give us false results with seemingly high certainty. For testing whether the Poisson model fits adequately using the Pearson $\chi^2$ test at the $\alpha = 0.05$ level, we find that we reject the null hypothesis and conclude that the Poisson model does \textbf{not} adequately fit.
+
+\end{bluebox}
+
+## (b) 
+
+Re-do part (a) by fitting the Negative Binomial log-linear regression model.
+Would the Negative Binomial log-linear regression model fit this data set adequately?
+
+```{r}
+# Pearson chi-square goodness of fit
+pearson_resid <- residuals(mod5b, type = "pearson")
+X2 <- sum(pearson_resid^2)
+df <- df.residual(mod5b)
+
+cat("Pearson Chi-Square:", round(X2, 4), "\n")
+cat("Degrees of Freedom:", df, "\n")
+cat("X2/df (dispersion estimate):", round(X2/df, 4), "\n")
+```
+
+\begin{bluebox}
+Continuing on with the same strategy, but this time for the negative binomial model, we find that the dispersion estimate ratio is much closer to $1$, indicating that the negative binomial log-linear regression model may be capable of fitting the data set adequately. The p-value of the test here would be less reliable than for the Poisson model because of the estimation of two parameters for the negative binomial model, so we will omit reporting on it here. 
+\end{bluebox}
+
+## (c) 
+
+Under the Negative Binomial log-linear regression model, carry out an appropriate test to check if DISTCITY and AREANEAR can be dropped from the model using log(AREA) as an offset variable.
+
+```{r}
+# Full NB model
+mod5b_full <- glm.nb(NATIVE ~ ELEV + DISTNEAR + DISTCITY + AREANEAR + 
+                       offset(log(AREA)), data = dat5)
+
+# Reduced NB model, w/o DISTCITY and AREANEAR
+mod5b_reduced <- glm.nb(NATIVE ~ ELEV + DISTNEAR + offset(log(AREA)),
+                        data = dat5)
+
+# Likelihood ratio test:
+LRT_stat <- 2 * (logLik(mod5b_full) - logLik(mod5b_reduced))
+p_val <- pchisq(LRT_stat, df = 2, lower.tail = FALSE)
+cat("LRT statistic:", round(LRT_stat, 4), "\n")
+cat("df:", 2, "\n")
+cat("P-value:", round(p_val, 4), "\n")
+```
+
+\begin{bluebox}
+In our model using the offset log(AREA), we can test whether predictors DISTCITY and AREANEAR can be dropped from the model if we use a likelihood ratio test (at signficance level $\alpha = 0.05$) with hypotheses:
+
+$$
+H_0: \beta_{\text{DISTCITY}} = \beta_{\text{AREANEAR}} =0 \text{, and }
+$$
+
+$$
+H_1: \text{At least one of }\beta_{\text{DISTCITY}}, \; \beta_{\text{AREANEAR}} \; \text{ is not zero.}
+$$
+
+Upon running our likelihood ratio test, we do not find evidence to reject the null hypothesis. Therefore, we instead believe that DISTCITY and AREANEAR can both be dropped from the negative binomial regression model.
+
+\end{bluebox}
+
+# Problem 6
+
+The data in abdeaths.csv on the course website consist of the number of cancer deaths among survivors of the atomic bombs dropped on Japan during World War II ($Deaths$), the categorized time (in years) after the bomb that death occurred ($YearsAfter$), and the amount of radiation exposure that the survivors received from the blast ($Exposure$).  Also listed in the file is the person-years at risk, in 100s ($AtRisk$); this is the sum total of all years spent by all persons in a particular year-exposure category. It is desired to describe the rate of cancer deaths per person per year.
+
+```{r}
+dat6 <- read.csv("./abdeaths.csv")
+str(dat6)
+head(dat6)
+```
+
+## (a) 
+
+Using $\log(AtRisk)$ as an offset, fit the Poisson log-linear regression model with $YearsAfter$ treated as a factor (with 7 levels) and with $Exposure$ treated as a covariate.  Does extra-Poisson variation appear to be present? Provide supporting evidence for your answer.
+
+```{r poisson-factor}
+dat6$YearsAfter <- as.factor(dat6$YearsAfter)
+
+mod6a <- glm2(Deaths ~ YearsAfter + Exposure + offset(log(AtRisk)),
+              family = poisson,
+              data = dat6)
+summary(mod6a)
+
+pearson_resid <- residuals(mod6a, type = "pearson")
+X2            <- sum(pearson_resid^2)
+df            <- df.residual(mod6a)
+
+cat("Pearson Chi-Square:", round(X2, 4), "\n")
+cat("Degrees of Freedom:", df, "\n")
+cat("X2/df:", round(X2/df, 4), "\n")
+cat("P-value:", round(pchisq(X2, df, lower.tail = FALSE), 4), "\n")
+```
+\begin{bluebox}
+Upon reviewing our ratio between $X^2$ and the associated degrees of freedom, the ratio is above but quite close to one, indicating that overdispersion is modest. When we run our Pearson test atvthe $\alpha = 0.05$ significance level testing $H_0: \text{ The Poisson model is a good fit}$, we are returned the p-value $0.0528$, which tells us to not reject our null hypothesis. Therefore, based upon our results we do not have reason to believe that overdispersion is a serious problem for the Poisson model here. We should note that our p-value is very close to our selected significance threshold. 
+\end{bluebox}
+
+## (b) 
+
+Fit the same model as in part (a), but instead of treating ``time after bomb'' as a factor with 7 levels (i.e., $YearsAfter$), compute the midpoint of each interval and use the log of the midpoints (i.e., $\log(time)$) as a numerical explanatory variable. Is the deviance substantially larger in this model, or does it appear that time can adequately be represented through this single term?
+
+```{r poisson-logtime}
+# Map labels to midpoints
+midpoint_map <- c(
+  "2to7"  = 4.5,
+  "8to11"  = 9.5,
+  "12to15" = 13.5,
+  "16to19" = 17.5,
+  "20to23" = 21.5,
+  "24to27" = 25.5,
+  "28to34" = 31.0
+)
+dat6$logtime <- log(midpoint_map[dat6$YearsAfter])
+mod6b <- glm2(Deaths ~ logtime + Exposure + offset(log(AtRisk)),
+              family = poisson, data = dat6)
+summary(mod6b)
+
+pearson_resid <- residuals(mod6b, type = "pearson")
+X2            <- sum(pearson_resid^2)
+df            <- df.residual(mod6b)
+
+cat("Pearson Chi-Square:", round(X2, 4), "\n")
+cat("Degrees of Freedom:", df, "\n")
+cat("X2/df:", round(X2/df, 4), "\n")
+
+cat("\nDeviance model (a):", round(deviance(mod6a), 4),
+    "df:", df.residual(mod6a), "\n")
+cat("Deviance model (b):", round(deviance(mod6b), 4),
+    "df:", df.residual(mod6b), "\n")
+cat("Deviance difference:", round(deviance(mod6b) - deviance(mod6a), 4),
+    "df:", df.residual(mod6b) - df.residual(mod6a), "\n")
+```
+
+\begin{bluebox}
+When we construct our model in this way, treating the time as a continuous variable instead of a factor level, our residual deviance grows substantially (we get residual deviance 234.23 vs the prior model's residual deviance of 50.106). This indicates that this different expression of the time after incident variable is less effective at modeling the cancer deaths per person per year than the previous expression of the time variable. 
+\end{bluebox}
+
+## (c) 
+
+Redo parts (a) and (b) using an overdispersed Poisson model. Based on this model, provide an estimate and 95\% confidence interval for the multiplicative effect of increasing radiation exposure by one unit on rate of cancer deaths per person per year.  Since the data are provided in 25 unit increments, also provide at 95\% confidence interval for the multiplicative effect of increasing exposure by 25 units on rate of cancer deaths per person per year.
+
+```{r overdispersed-poisson}
+# Refit (a) and (b) with quasi-Poisson
+mod6c_a <- glm2(Deaths ~ YearsAfter + Exposure + offset(log(AtRisk)),
+                family = quasipoisson,
+                data = dat6)
+
+mod6c_b <- glm2(Deaths ~ logtime + Exposure + offset(log(AtRisk)),
+                family = quasipoisson,
+                data = dat6)
+
+summary(mod6c_a)
+summary(mod6c_b)
+
+# Multiplicative effect of +1 unit of Exposure
+beta1    <- coef(mod6c_a)["Exposure"]
+se_beta1 <- summary(mod6c_a)$coefficients["Exposure", "Std. Error"]
+
+mult_1   <- exp(beta1)
+ci_1     <- exp(beta1 + c(-1, 1) * qt(0.975, df = 34) * se_beta1)
+
+cat("Multiplicative effect (+1 Exposure):", round(mult_1, 6), "\n")
+cat("95% CI:", round(ci_1[1], 6), ",", round(ci_1[2], 6), "\n")
+
+# Multiplicative effect of +25 units of Exposure
+mult_25  <- exp(25 * beta1)
+ci_25    <- exp(25 * beta1 + c(-1, 1) * qt(0.975, df = 34) * 25 * se_beta1)
+
+cat("Multiplicative effect (+25 Exposure):", round(mult_25, 6), "\n")
+cat("95% CI:", round(ci_25[1], 6), ",", round(ci_25[2], 6), "\n")
+```
+
+\begin{bluebox}
+Using the overdispersed Poisson model, we find residual deviance exceeding the degrees of freedom by only a modest amount (50.106 vs 34), implying that overdispersion would not be a great worry for this model. Attempting again the alternate expression of the time variable for this new model, we find again that our residual deviance is substantially larger than for the class-separated model in time, implying a substantially worse fit. 
+
+Based upon our model, we can estimate the multiplicative effective of increasing radiation exposure by one unit on rate of cancer deaths per person per year to be 1.001833 with corresponding 95\% confidence interval ($1.000768$, $1.0029$). Expanding to a larger unit of 25 original units, this multiplicative effect can be estimated as $1.046854$ with corresponding 95\% confidence interval ($1.019372$, $1.075077$).
+\end{bluebox}
+
+## (d) 
+
+Using $\log(AtRisk)$ as an offset, fit the Negative Binomial log-linear regression model with $YearsAfter$ treated as a factor (with 7 levels) and with $Exposure$ treated as a covariate. Does overdispersion appear to be present under the Negative Binomial log-linear regression model? Provide supporting evidence for your answer.
+
+```{r nb-factor, warning=FALSE}
+mod6d <- glm.nb(Deaths ~ YearsAfter + Exposure + offset(log(AtRisk)),
+                data = dat6)
+summary(mod6d)
+
+pearson_resid <- residuals(mod6d, type = "pearson")
+X2            <- sum(pearson_resid^2)
+df            <- df.residual(mod6d)
+
+cat("NB Pearson Chi-Square:", round(X2, 4), "\n")
+cat("Degrees of Freedom:", df, "\n")
+cat("X2/df:", round(X2/df, 4), "\n")
+cat("Estimated Theta (k):", round(mod6d$theta, 4), "\n")
+```
+
+\begin{bluebox}
+Given our $X^2/\text{df}$ ratio of $1.4212$, we do not have strong reason to believe that overdispersion will be an issue for this model. Our estimated dispersion parameter is incredibly large, meaning that the negative binomial model is approaching a Poisson model. This makes sense, as we observe our $X^2/\text{df}$ value to be nearly identical to the one found in our model from Part (a).
+\end{bluebox}
