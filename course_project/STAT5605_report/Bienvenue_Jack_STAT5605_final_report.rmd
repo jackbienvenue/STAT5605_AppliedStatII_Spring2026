@@ -1,0 +1,87 @@
+---
+title: "Historically-Informed Poisson Regression Modeling of Motor Vehicle Crash Counts in Connecticut - Final Report"
+subtitle: "April 12, 2026"
+author: "Jack Bienvenue"
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: preamble.tex
+    latex_engine: pdflatex
+    keep_tex: true 
+header-includes:
+  - \usepackage{titling}
+  - \setlength{\droptitle}{1em} 
+fontsize: 12pt
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+\vspace{3cm}
+
+\textbf{Team members and contact addresses:}
+\begin{enumerate}
+  \item Jack Bienvenue, \texttt{jack.bienvenue@uconn.edu}
+\end{enumerate}
+
+---
+
+### Abstract/Summary of the project
+
+
+<!-- ------------------ START INTRODUCTION ----------------------------- -->
+
+# Introduction
+
+\begin{quote}
+This section should include a
+  literature review, the statement of the problem, a brief discussion
+  why this problem is important, and an outline of the rest of the
+  report.
+\end{quote}
+
+# Description of Motivating Data
+
+\begin{quote}
+This section provides a description of the
+  data, including the source. You should also show various graphical
+  and numerical descriptions of the variables in your data set. The
+  data set must be provided on HuskyCT as a .csv file.
+\end{quote}
+
+# Methods
+ \begin{quote}
+This section should Clearly write out the model(s)
+  you will use, defining all terms, and listing all assumptions.
+\end{quote}
+
+
+# Analysis
+
+ \begin{quote}
+This section should provide a detailed analyze of the data. You
+  must pay attention to fitting the best model to your data, keeping
+  in mind all the aspects about MLRs or GLMs we have discussed and the
+  book discusses. Specifically, you must provide model validation, by
+  fitting your model on a ``calibration data portion'' and validating
+  on a ``test data portion'', and prediction based on the ``best''
+  model.
+\end{quote}
+
+# Conclusion
+\begin{quote}
+This section should include a 2-3 paragraph summary
+  of the analysis and what you have learned.
+\end{quote}
+
+
+# Appendix
+\begin{quote}
+This section could include computer codes and any other important additional materials.
+\end{quote}
+
+### Acknowledgment
+
+# References
