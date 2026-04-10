@@ -1,0 +1,100 @@
+---
+title: "Examining the Effects of Precipitation on Vehicle Crashes in Connecticut"
+format: 
+ revealjs:
+  self-contained: true
+  slideNumber: true
+  theme: night
+  include-in-header: 
+   text: |
+    <style>
+    .v-center-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90%;
+    }
+    </style>
+highlight-style: "github"  
+footer: "Jack Bienvenue | STAT5095" 
+preview-links: false
+---
+
+<!------------------------ CSS SETUP --------------------------->
+<style>
+  .container {
+    display: flex;
+    gap: 20px; /* space between columns */
+    align-items: flex-start; /* aligns top of both columns */
+  }
+
+  .col {
+    flex: 1;
+    text-align: center;
+  }
+
+  .col img {
+    height: 300px; /* desired uniform height */
+    width: auto;   /* maintain aspect ratio */
+    display: block;
+    margin: 0 auto;
+  }
+
+  .image-box {
+  background-color: rgba(240, 240, 240, 0.7); /* very light gray with 70% opacity */
+  padding: 20px;
+  border-radius: 12px;       /* rounded corners for a soft look */
+  display: inline-block;     /* shrink to fit content */
+  margin: 0 auto;            /* center in parent */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* optional: soft drop shadow */
+}
+
+  .image-box2 {
+  background-color: rgba(38, 38, 38, 0.7); /* darker gray with 70% opacity */
+  padding: 20px;
+  border-radius: 12px;       /* rounded corners for a soft look */
+  display: inline-block;     /* shrink to fit content */
+  margin: 0 auto;            /* center in parent */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* optional: soft drop shadow */
+}
+
+.image-box3 {
+  background-color: rgba(250, 250, 250, 0.7); /* darker gray with 70% opacity */
+  padding: 20px;
+  border-radius: 12px;       /* rounded corners for a soft look */
+  display: inline-block;     /* shrink to fit content */
+  margin: 0 auto;            /* center in parent */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* optional: soft drop shadow */
+}
+</style>
+<!---------------------------------------------------------------->
+
+<!--SLIDE 2 ------------------------------------------------------>
+<section data-auto-animate data-background="images/ct_storm_animation_cropped_compressed.gif" data-background-size="1400px">
+</section>
+
+<!--SLIDE 3 ------------------------------------------------------>
+
+<!--SLIDE 4 ------------------------------------------------------>
+
+<!--SLIDE 5 ------------------------------------------------------>
+
+<!--SLIDE 6 ------------------------------------------------------>
+
+<!--SLIDE 7 ------------------------------------------------------>
+
+<!--SLIDE 8 ------------------------------------------------------>
+
+<!--SLIDE 9 ------------------------------------------------------>
+
+<!--SLIDE 10 ------------------------------------------------------>
+
+<!--SLIDE 11 ------------------------------------------------------>
+
+<!--SLIDE 12 ------------------------------------------------------>
+
+<!--SLIDE 13 ------------------------------------------------------>
+
+<!--SLIDE 14 ------------------------------------------------------>
+
+<!--SLIDE 15 ------------------------------------------------------>
