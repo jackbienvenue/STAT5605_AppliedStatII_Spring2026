@@ -1,73 +1,143 @@
 ---
 title: "Examining the Effects of Precipitation on Vehicle Crashes in Connecticut"
-format: 
+format:
  revealjs:
-  self-contained: true
+  self-contained: false
+  embed-resources: true
+  resources:
+  - images/roads.html
   slideNumber: true
-  theme: night
-  include-in-header: 
+  theme: simple
+  include-in-header:
    text: |
     <style>
     .v-center-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 90%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 90%;
     }
+    .container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .col {
+      flex: 1;
+      text-align: center;
+    }
+    .col img {
+      height: 300px;
+      width: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .image-box {
+      background-color: rgba(240, 240, 240, 0.7);
+      padding: 20px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .image-box2 {
+      background-color: rgba(38, 38, 38, 0.7);
+      padding: 20px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .image-box3 {
+      background-color: rgba(250, 250, 250, 0.7);
+      padding: 20px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #fff;
+      color: #111;
+    }
+    .table-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #666;
+      margin: 0 0 0.75rem 0;
+    }
+    .severity-legend {
+      display: flex;
+      gap: 16px;
+      margin: 0 0 1.25rem 0;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #555;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+    thead tr {
+      border-bottom: 1.5px solid #ccc;
+    }
+    th {
+      font-weight: 600;
+      font-size: 13px;
+      color: #555;
+      padding: 8px 16px;
+      text-align: right;
+    }
+    th.label-col {
+      text-align: left;
+    }
+    tbody tr {
+      border-bottom: 0.5px solid #e5e5e5;
+    }
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+    td {
+      padding: 10px 16px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    td.label-col {
+      text-align: left;
+      font-weight: 500;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+    .badge-k { background: #FCEBEB; color: #421B53; }
+    .badge-a { background: #FAEEDA; color: #8D2519; }
+    .badge-b { background: #EAF3DE; color: #A85D1C; }
+    .badge-c { background: #E6F1FB; color: #E7C031; }
     </style>
-highlight-style: "github"  
-footer: "Jack Bienvenue | STAT5095" 
+highlight-style: "github"
+footer: "Jack Bienvenue | STAT5095"
 preview-links: false
 ---
-
-<!------------------------ CSS SETUP --------------------------->
-<style>
-  .container {
-    display: flex;
-    gap: 20px; /* space between columns */
-    align-items: flex-start; /* aligns top of both columns */
-  }
-
-  .col {
-    flex: 1;
-    text-align: center;
-  }
-
-  .col img {
-    height: 300px; /* desired uniform height */
-    width: auto;   /* maintain aspect ratio */
-    display: block;
-    margin: 0 auto;
-  }
-
-  .image-box {
-  background-color: rgba(240, 240, 240, 0.7); /* very light gray with 70% opacity */
-  padding: 20px;
-  border-radius: 12px;       /* rounded corners for a soft look */
-  display: inline-block;     /* shrink to fit content */
-  margin: 0 auto;            /* center in parent */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* optional: soft drop shadow */
-}
-
-  .image-box2 {
-  background-color: rgba(38, 38, 38, 0.7); /* darker gray with 70% opacity */
-  padding: 20px;
-  border-radius: 12px;       /* rounded corners for a soft look */
-  display: inline-block;     /* shrink to fit content */
-  margin: 0 auto;            /* center in parent */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* optional: soft drop shadow */
-}
-
-.image-box3 {
-  background-color: rgba(250, 250, 250, 0.7); /* darker gray with 70% opacity */
-  padding: 20px;
-  border-radius: 12px;       /* rounded corners for a soft look */
-  display: inline-block;     /* shrink to fit content */
-  margin: 0 auto;            /* center in parent */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* optional: soft drop shadow */
-}
-</style>
-<!---------------------------------------------------------------->
 
 <!--SLIDE 2 ------------------------------------------------------>
 <section data-auto-animate data-background="images/ct_storm_animation_cropped_compressed.gif" data-background-size="1400px">
@@ -75,26 +145,287 @@ preview-links: false
 
 <!--SLIDE 3 ------------------------------------------------------>
 
-<!--SLIDE 4 ------------------------------------------------------>
+<section data-auto-animate>
+  <h2 style="text-align: center;">Problem Introduction</h2>
+  
+<div class="container">
 
-<!--SLIDE 5 ------------------------------------------------------>
+<div class="col">
+  <p>Motor Vehicle Crashes</p>
+  <ul>
+    <li>Global leading cause of death among 5-29 year olds   [1, WHO]</li>
+    <li>Cost CT ~$5 billion annually [2, USDOT]</li>
+  </ul>
+</div>
+
+<div class="col">
+  <p>Precipitation & Driving</p>
+  <li style="text-align: left;">Poor weather conditions reduce visibility & decrease traction,</li>
+  <li style="text-align: left;">Creating hazardous roadway conditions</li>
+</div>
+</div>
+
+<div class="image-box3">
+<img src="images/snowy_crash.gif" style="display: block; margin: 0 auto; width: 150%;">
+</div>
+
+<h2 style="text-align: right; position: absolute; bottom: 100px; right: 25px; text-align: right;">Data Overview</h2>
+</section>
+
+
+<!--SLIDES - Data Overview -------------------------------------------->
+
+<section data-auto-animate>
+  <h2 style="text-align: center;">Data Overview</h2>
+  <p style="text-align: center;">ERA5 Land Package [3, ECMWF]</p>
+  
+
+  <div class="image-box3" style="width: 100%; box-sizing: border-box;">
+  <iframe src="./images/grid_cells.html" width="100%" height="440px" style="border: none; display: block;"></iframe>
+</div>
+
+</section>
+
+<section data-auto-animate>
+<h2 style="text-align: center;">Data Overview</h2>
+<p style="text-align: center;">CT Roads [4, CT DEEP]</p>
+
+<div class="container">
+
+<div class="col">
+<div class="image-box3" style="width: 65%; box-sizing: border-box;">
+<img src="images/Mansfield_roads.png" style="height: 420px; width: 75%; display: block;">
+</div>
+</div>
+</div>
+</section>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;">Data Overview</h2>
+
+  <p style="text-align: center;">CT Crashes [5, UConn CTCDR]</p>
+
+<div class="container">
+<div class="col">
+<div class="image-box3" style="width: 65%; box-sizing: border-box;">
+<img src="images/fig4b_geomean.png" style="height: 420px; width: 75%; display: block;">
+</div>
+</div>
+</div>
+
+<p style="text-align: center;"> [4, CT DEEP; 6, US Census Bureau]</p>
+
+</section>
+
+<!-- ------------------------------------------------------>
+
+<section data-auto-animate>
+  <h1 style="text-align: center;">Duration-Based Method for</h1>
+  <h1 style="text-align: center;">Accident Frequency Under</h1>
+  <h1 style="text-align: center;">Wet and Dry Conditions</h1>
+</section>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;"> Durational Approach </h2>
+  <p>Benefits:</p> 
+  <ul>
+    <li>Immediately provides sense of mean of time between events under properly specified distributional assumptions</li>
+  </ul>
+  <p>Drawbacks: </p>
+  <ul>
+    <li>Requires sufficiently great extent of aggregation, making it harder to estimate recurrence at smaller scales</li>
+  </ul>
+</section>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;"> Durational Approach: Distributions </h2>
+
+<div class="image-box3" style="width: 100%; box-sizing: border-box; margin: 0 auto;">
+<img src="./images/overlaid_hists_duration1.png" style="display: block; margin: 20px auto; width: 80%;">
+</div>
+
+</section>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;"> Durational Approach: Distributions Cont. </h2>
+
+<div class="image-box3" style="width: 100%; box-sizing: border-box;">
+<img src="./images/Gamma_fit.png" style="display: block; margin: 0 auto; width: 80%;">
+</div>
+</section>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;"> Durational Approach: Hypothesis Testing </h2>
+
+<div class="container">
+
+<div class="col">
+  <p>Parametric - Gamma($\alpha$, $\theta$)</p>
+  <ul>
+    <li>$\alpha \sim$ shape, $\theta \sim$ scale; $\rightarrow E[X] = \alpha\theta$ </li>
+    <li>Likelihood ratio test:</li>
+    <li>$H_0: \theta_{\text{dry}} = \theta_{\text{wet}}$</li>
+    <li>$H_A: \theta_{\text{dry}} \neq \theta_{\text{wet}}$</li>
+  </ul>
+
+<div class="image-box3" style="width: 80%; box-sizing: border-box; margin: 0 auto;">
+<p>Reject $H_0$ for both $(p\text{-value} < 0.000001)$</p>
+</div>
+
+</div>
+
+<div class="col">
+  <p>Non-parametric</p>
+  <li style="text-align: left;">Not happy with the Gamma assumption?</li>
+  <li style="text-align: left;">Try the Kolmogorov-Smirnov test:</li>
+  <li style="text-align: left;">$H_0$: Wet and dry spacings come from the same distribution</li>
+  <li style="text-align: left;">$H_A$: Wet and dry spacings come from different distributions</li>
+</div>
+</div>
+</section>
+
+<section data-auto-animate>
+<div class="container">
+
+<div class="col">
+  <p>Test Results</p>
+
+<div class="image-box3" style="width: 90%; box-sizing: border-box; margin: 0 auto;">
+<p>Reject $H_0$ for both $(p\text{-value} < 0.000001)$</p>
+
+
+<p style="text-align: left;">$\rightarrow$ Mean duration between crashes differs under dry and wet conditions</p>
+<p style="text-align: left;">$\rightarrow$ Distributions of durations differ under dry and wet conditions</p>
+</div>
+</div>
+
+<div class="col">
+  <p>Extent of Difference</p>
+<ul>
+  <li style="text-align: left;">Dry vs. Any Rain</li>
+  <ul> 
+    <li>20.6 vs 16.5 min (+24.85%)</li>
+  </ul>
+  <li style="text-align: left;">Dry vs. Moderate-to-Heavy Rain</li>
+  <ul> 
+    <li>20.4 vs 12.3 min (+65.85%)</li>
+  </ul>
+  <li style="text-align: left;">Dry vs. Heavy Rain</li>
+  <ul> 
+    <li>20.3 vs 13.0 min (+56.15%)</li>
+  </ul>
+</ul>
+</div>
+</div>
+</section>
+
+
+<!-- ------------------------------------------------------>
+
+<section data-auto-animate>
+  <h1 style="text-align: center;">Precipitation &</h1>
+  <h1 style="text-align: center;">Accident Severity</h1>
+</section>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;">Precipitation & Accident Severity</h2>
+  
+<div class="image-box3" style="width: 100%; box-sizing: border-box;">
+<img src="../scripts/outputs/figures/fig1_injury_by_precip.png" style="display: block; margin: 0 auto; width: 100%;">
+</div>
+<p style="text-align: center;">Injury Result Crashes in CT, 1/1/2015-12/31/2023</p>
+</section>
+
+<section data-auto-animate>
+  <h2>Contingency Table Methods</h2>
+
+  <p class="table-title">Injury Occurrences per precipitation category</p>
+ 
+<div class="severity-legend">
+  <div class="legend-item"><div class="dot" style="background:#E24B4A;"></div> K — Fatal</div>
+  <div class="legend-item"><div class="dot" style="background:#EF9F27;"></div> A — Suspected serious</div>
+  <div class="legend-item"><div class="dot" style="background:#639922;"></div> B — Suspected minor</div>
+  <div class="legend-item"><div class="dot" style="background:#378ADD;"></div> C — Possible injury</div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th class="label-col">Precipitation</th>
+      <th><span class="badge badge-k">K</span></th>
+      <th><span class="badge badge-a">A</span></th>
+      <th><span class="badge badge-b">B</span></th>
+      <th><span class="badge badge-c">C</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="label-col">Dry</td>
+      <td>2,572</td>
+      <td>12,164</td>
+      <td>102,404</td>
+      <td>123,538</td>
+    </tr>
+    <tr>
+      <td class="label-col">Light rain</td>
+      <td>316</td>
+      <td>1,350</td>
+      <td>14,025</td>
+      <td>18,549</td>
+    </tr>
+    <tr>
+      <td class="label-col">Moderate rain</td>
+      <td>32</td>
+      <td>97</td>
+      <td>1,216</td>
+      <td>1,537</td>
+    </tr>
+    <tr>
+      <td class="label-col">Heavy rain</td>
+      <td>1</td>
+      <td>4</td>
+      <td>53</td>
+      <td>61</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Traditional contingency table tests find significant differences in the distribution of injury severities across precipitation categories.</p>
+
+<p>However, the effect size is very small. </p>
+ 
+</section>
+
+
+
 
 <!--SLIDE 6 ------------------------------------------------------>
 
-<!--SLIDE 7 ------------------------------------------------------>
-
-<!--SLIDE 8 ------------------------------------------------------>
-
-<!--SLIDE 9 ------------------------------------------------------>
-
-<!--SLIDE 10 ------------------------------------------------------>
-
-<!--SLIDE 11 ------------------------------------------------------>
-
 <!--SLIDE 12 ------------------------------------------------------>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;">Conclusions</h2>
+  
+  <p>Under rainy conditions, the duration between crashes is significantly shorter than under dry conditions.</p>
+  <p>The severity of injuries in injury-result crashes is not significantly different under rainy and dry conditions.</p>
+</section>
 
 <!--SLIDE 13 ------------------------------------------------------>
 
+<section data-auto-animate>
+  <h2 style="text-align: center;">Conclusions, cont. </h2>
+  
+</section>
+
 <!--SLIDE 14 ------------------------------------------------------>
 
+<section data-auto-animate>
+  <h1 style="text-align: center;">Thank you! Questions?</h1>
+  
+</section>
+
 <!--SLIDE 15 ------------------------------------------------------>
+
+<section data-auto-animate>
+  <h2 style="text-align: center;"> References </h2>
+  
+</section>
